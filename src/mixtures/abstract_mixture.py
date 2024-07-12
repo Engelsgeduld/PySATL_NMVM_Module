@@ -46,7 +46,7 @@ class AbstractMixtures(metaclass=ABCMeta):
         Args:
             size: length of sample
             w_distribution: Distribution of random value w
-            params: Parameters of Mixture. For example: alpha, betta, gamma for NMM
+            params: Parameters of Mixture. For example: theta for NMM
 
         Returns: samples of given size
 
