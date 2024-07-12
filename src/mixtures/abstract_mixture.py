@@ -25,9 +25,8 @@ class AbstractMixtures(metaclass=ABCMeta):
     def classic_generate(
         self, size: int, w_distribution: scipy.stats.rv_continuous, params: list[float]
     ) -> _typing.ArrayLike:
-        """
+        """Generate a samples of given size. Classical form of Mixture
 
-        Generate a samples of given size. Classical form of Mixture
         Args:
             size: length of sample
             w_distribution: Distribution of random value w
