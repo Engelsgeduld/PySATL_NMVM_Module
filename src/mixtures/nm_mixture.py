@@ -47,6 +47,8 @@ class NormalMeanMixtures(AbstractMixtures):
         if len(params) != 1:
             raise ValueError("Expected 1 parameter")
         sigma = params[0]
+        if sigma < 0:
+            raise ValueError("Expected parameter greater than or equal to zero")
         return sigma
 
     def classic_generate(

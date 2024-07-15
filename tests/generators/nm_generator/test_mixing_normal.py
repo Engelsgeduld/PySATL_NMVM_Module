@@ -3,7 +3,7 @@ import pytest
 from scipy import ndimage
 from scipy.stats import norm
 
-from src.mixtures.nm_mixtures import *
+from src.mixtures.nm_mixture import *
 
 
 class TestMixingNormal:
