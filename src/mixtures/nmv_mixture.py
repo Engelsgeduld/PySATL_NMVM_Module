@@ -46,7 +46,7 @@ class NormalMeanVarianceMixtures(AbstractMixtures):
 
         """
         if len(params) != 2:
-            raise ValueError("Expected 1 parameter")
+            raise ValueError("Expected 2 parameters")
         alpha, mu = params
         return alpha, mu
 
