@@ -27,6 +27,7 @@ class NormalMeanMixtures(AbstractMixtures):
             params: Parameters of Mixture. For example: alpha, beta, gamma for NMM
 
         Returns:
+            params: alpha, beta, gamma for NMM
 
         """
         if len(params) != 3:
@@ -42,6 +43,7 @@ class NormalMeanMixtures(AbstractMixtures):
             params: Parameters of Mixture. For example: sigma for NMM
 
         Returns:
+            params: sigma for NMM
 
         """
         if len(params) != 1:

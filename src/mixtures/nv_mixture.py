@@ -28,6 +28,7 @@ class NormalVarianceMixtures(AbstractMixtures):
             params: Parameters of Mixture. For example: alpha, gamma for NVM
 
         Returns:
+            params: alpha, gamma for NVM
 
         """
         if len(params) != 2:
@@ -43,6 +44,7 @@ class NormalVarianceMixtures(AbstractMixtures):
             params: Parameters of Mixture. For example: alpha for NVM
 
         Returns:
+            params: alpha for NVM
 
         """
         if len(params) != 1:
