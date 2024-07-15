@@ -81,7 +81,7 @@ class NormalVarianceMixtures(AbstractMixtures):
         Returns: sample of given size
 
         """
-        alpha = self._classic_generate_params_validation(params)
+        alpha = self._canonical_generate_params_validation(params)
         mixing_values = w_distribution.rvs(size=size)
         normal_values = scipy.stats.norm.rvs(size=size)
         return alpha + (mixing_values**0.5) * normal_values
