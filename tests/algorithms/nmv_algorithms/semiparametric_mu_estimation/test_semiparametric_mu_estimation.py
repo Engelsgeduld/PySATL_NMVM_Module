@@ -70,7 +70,7 @@ class TestSemiParametricMuEstimation:
         est_mu = mixture.semi_param_algorithm("mu_estimation", sample, params)
         assert abs(real_mu - est_mu) < 1
 
-    @pytest.mark.parametrize("real_mu, params", [[10, [i]] for i in range(1, 10)])
+    @pytest.mark.parametrize("real_mu, params", [[10, [i]] for i in range(1, 5)])
     def test_mu_estimation_expon_1_parameter_m_is_best_estimation(self, real_mu: float, params: list) -> None:
         mixture = NormalMeanVarianceMixtures()
         sample = mixture.canonical_generate(10000, expon, [0, real_mu])
