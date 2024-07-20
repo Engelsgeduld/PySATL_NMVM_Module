@@ -10,16 +10,9 @@ from src.register.register import Registry
 class AbstractMixtures(metaclass=ABCMeta):
     """Base class for Mixtures"""
 
-    def __init__(self, param_collector: Registry, semi_param_collector: Registry) -> None:
-        """
-
-        Args:
-            param_collector: Collector of implementations of parametric algorithms
-            semi_param_collector: Collector of implementations of semi-parametric algorithms
-
-        """
-        self.param_collector = param_collector
-        self.semi_param_collector = semi_param_collector
+    def __init__(self) -> None:
+        self.param_collector: Registry = Registry()
+        self.semi_param_collector: Registry = Registry()
 
     @abstractmethod
     def classic_generate(
@@ -35,7 +28,6 @@ class AbstractMixtures(metaclass=ABCMeta):
         Returns: samples of given size
 
         """
-        ...
 
     @abstractmethod
     def canonical_generate(
@@ -51,32 +43,29 @@ class AbstractMixtures(metaclass=ABCMeta):
         Returns: samples of given size
 
         """
-        ...
 
     @abstractmethod
-    def param_algorithm(self, name: str, selection: _typing.ArrayLike, params: list[float]) -> Any:
+    def param_algorithm(self, name: str, sample: _typing.ArrayLike, params: list[float]) -> Any:
         """Select and run parametric algorithm
 
         Args:
             name: Name of Algorithm
-            selection: Vector of random values
+            sample: Vector of random values
             params: Parameters of Algorithm
 
         Returns: TODO
 
         """
-        ...
 
     @abstractmethod
-    def semi_param_algorithm(self, name: str, selection: _typing.ArrayLike, params: list[float]) -> Any:
+    def semi_param_algorithm(self, name: str, sample: _typing.ArrayLike, params: list[float]) -> Any:
         """Select and run semi-parametric algorithm
 
         Args:
             name: Name of Algorithm
-            selection: Vector of random values
+            sample: Vector of random values
             params: Parameters of Algorithm
 
         Returns: TODO
 
         """
-        ...
