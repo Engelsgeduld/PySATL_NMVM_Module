@@ -1,9 +1,14 @@
 import math
-from typing import Any
+from typing import Callable, TypedDict, Unpack
 
 import mpmath
 import numpy as np
 from numpy import _typing
+
+M_DEFAULT_VALUE = 1000
+TOLERANCE_DEFAULT_VALUE = 10**-5
+OMEGA_DEFAULT_VALUE = lambda x: -1 * math.sin(x) if abs(x) <= math.pi else 0
+MAX_ITERATIONS_DEFAULT_VALUE = 10**9
 
 
 class SemiParametricMuEstimation:
@@ -19,68 +24,39 @@ class SemiParametricMuEstimation:
 
     """
 
-    def __init__(self, sample: np._typing.NDArray = None, params: list[Any] = None):
-        if sample is None:
-            self.sample = np.array([])
-        else:
-            self.sample = sample
-        self.m, self.tolerance, self.omega = self._set_default_params(params)
+    class ParamsAnnotation(TypedDict, total=False):
+        m: float
+        tolerance: float
+        omega: Callable[[float], float]
+        max_iterations: float
 
-    def _set_default_params(self, params: list[Any] | None) -> tuple:
-        """Setting parameters of algorithm
+    def __init__(self, sample: _typing.ArrayLike = None, **kwargs: Unpack[ParamsAnnotation]):
+        self.sample = np.array([]) if sample is None else sample
+        self.m, self.tolerance, self.omega, self.max_iterations = self._validate_kwargs(**kwargs)
 
-        Args:
-            params: list of parameters
-
-        Returns: tuple of parameters
-
-        """
-        default_m = 1000
-        default_tolerance = 1 / 10**5
-        default_omega = self._default_omega
-
-        if params is None:
-            return default_m, default_tolerance, default_omega
-        elif len(params) == 1:
-            if isinstance(params[0], int) and params[0] > 0:
-                return params[0], default_tolerance, default_omega
-            else:
-                raise ValueError("Expected positive integer as parameter m")
-        elif len(params) == 2:
-            if isinstance(params[0], int) and params[0] > 0:
-                if isinstance(params[1], (int, float)) and params[1] > 0:
-                    return params[0], params[1], default_omega
-                else:
-                    raise ValueError("Expected positive float as parameter tolerance")
-            else:
-                raise ValueError("Expected positive integer as parameter m")
-        elif len(params) == 3:
-            if isinstance(params[0], int) and params[0] > 0:
-                if isinstance(params[1], (int, float)) and params[1] > 0:
-                    if callable(params[2]):
-                        return params[0], params[1], params[2]
-                    else:
-                        raise ValueError("Expected callable object as parameter omega")
-                else:
-                    raise ValueError("Expected positive float as parameter tolerance")
-            else:
-                raise ValueError("Expected positive integer as parameter m")
-        else:
-            raise ValueError("Expected 1, 2, or 3 parameters")
-
-    @staticmethod
-    def _default_omega(x: float) -> float:
-        """Default omega function
-
-        Args:
-            x: float
-
-        Returns: function value
-
-        """
-        if abs(x) <= math.pi:
-            return -1 * math.sin(x)
-        return 0
+    def _validate_kwargs(
+        self, **kwargs: Unpack[ParamsAnnotation]
+    ) -> tuple[float, float, Callable[[float], float], float]:
+        if any([i not in self.ParamsAnnotation.__annotations__ for i in kwargs]):
+            raise ValueError("Got unexpected parameter")
+        if "m" in kwargs and (not isinstance(kwargs.get("m"), int) or kwargs.get("m", -1) <= 0):
+            raise ValueError("Expected positive integer as parameter m")
+        if "tolerance" in kwargs and (
+            not isinstance(kwargs.get("tolerance"), (int, float)) or kwargs.get("tolerance", -1) <= 0
+        ):
+            raise ValueError("Expected positive float as parameter tolerance")
+        if "omega" in kwargs and not callable(kwargs.get("omega")):
+            raise ValueError("Expected callable object as parameter omega")
+        if "max_iterations" in kwargs and (
+            not isinstance(kwargs.get("max_iterations"), int) or kwargs.get("max_iterations", -1) <= 0
+        ):
+            raise ValueError("Expected positive integer as parameter max_iterations")
+        return (
+            kwargs.get("m", M_DEFAULT_VALUE),
+            kwargs.get("tolerance", TOLERANCE_DEFAULT_VALUE),
+            kwargs.get("omega", OMEGA_DEFAULT_VALUE),
+            kwargs.get("max_iterations", MAX_ITERATIONS_DEFAULT_VALUE),
+        )
 
     def __w(self, p: float, sample: np._typing.NDArray) -> float:
         """Root of this function is an estimation of mu
@@ -92,7 +68,7 @@ class SemiParametricMuEstimation:
         Returns: function value
 
         """
-        y = 0
+        y = 0.0
         for x in sample:
             try:
                 e = math.exp(-p * x)
@@ -118,13 +94,13 @@ class SemiParametricMuEstimation:
         if self.__w(self.m, sample) < 0:
             return self.m
 
-        left, right = 0, self.m
-        it = 0
+        left, right = 0.0, self.m
+        iteration = 0
         while left <= right:
             mid = (right + left) / 2
-            if it > 10**6:
+            if iteration > self.max_iterations:
                 return mid
-            it += 1
+            iteration += 1
             if abs(self.__w(mid, sample)) < self.tolerance:
                 return mid
             elif self.__w(mid, sample) < 0:
