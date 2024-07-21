@@ -56,104 +56,123 @@ class TestSemiParametricMuEstimation:
         est_mu = mixture.semi_param_algorithm("mu_estimation", sample)
         assert abs(real_mu - est_mu) < 1
 
-    @pytest.mark.parametrize("real_mu, params", [[1, [m]] for m in range(5, 10)])
-    def test_mu_estimation_expon_1_parameter_m_positive(self, real_mu: float, params: list) -> None:
+    @pytest.mark.parametrize("params", [{"m": m} for m in range(5, 10)])
+    def test_mu_estimation_expon_1_parameter_m_positive(self, params: dict) -> None:
+        real_mu = 1
         mixture = NormalMeanVarianceMixtures()
         sample = mixture.canonical_generate(10000, expon, [0, real_mu])
         est_mu = mixture.semi_param_algorithm("mu_estimation", sample, params)
         assert abs(real_mu - est_mu) < 1
 
-    @pytest.mark.parametrize("real_mu, params", [[-1, [m]] for m in range(5, 10)])
-    def test_mu_estimation_expon_1_parameter_m_negative(self, real_mu: float, params: list) -> None:
+    @pytest.mark.parametrize("params", [{"m": m} for m in range(5, 10)])
+    def test_mu_estimation_expon_1_parameter_m_negative(self, params: dict) -> None:
+        real_mu = -1
         mixture = NormalMeanVarianceMixtures()
         sample = mixture.canonical_generate(10000, expon, [0, real_mu])
         est_mu = mixture.semi_param_algorithm("mu_estimation", sample, params)
         assert abs(real_mu - est_mu) < 1
-
-    @pytest.mark.parametrize("real_mu, params", [[10, [i]] for i in range(1, 5)])
-    def test_mu_estimation_expon_1_parameter_m_is_best_estimation(self, real_mu: float, params: list) -> None:
-        mixture = NormalMeanVarianceMixtures()
-        sample = mixture.canonical_generate(10000, expon, [0, real_mu])
-        est_mu = mixture.semi_param_algorithm("mu_estimation", sample, params)
-        assert abs(est_mu == params[0])
 
     @pytest.mark.parametrize(
-        "real_mu, params", [[1, [10, tol]] for tol in [1 / 10**6, 1 / 10**7, 1 / 10**8, 1 / 10**9, 1 / 10**10]]
+        "params", [{"max_iterations": max_iterations} for max_iterations in (10**3, 10**4, 10**10)]
     )
-    def test_mu_estimation_expon_2_parameters_tol_positive(self, real_mu: float, params: list) -> None:
+    def test_mu_estimation_expon_1_parameter_max_iterations(self, params: dict) -> None:
+        real_mu = 1
         mixture = NormalMeanVarianceMixtures()
         sample = mixture.canonical_generate(10000, expon, [0, real_mu])
         est_mu = mixture.semi_param_algorithm("mu_estimation", sample, params)
         assert abs(real_mu - est_mu) < 1
 
+    @pytest.mark.parametrize("params", [{"m": m} for m in range(1, 5)])
+    def test_mu_estimation_expon_1_parameter_m_is_best_estimation(self, params: dict) -> None:
+        real_mu = 10
+        mixture = NormalMeanVarianceMixtures()
+        sample = mixture.canonical_generate(10000, expon, [0, real_mu])
+        est_mu = mixture.semi_param_algorithm("mu_estimation", sample, params)
+        assert abs(est_mu == params["m"])
+
     @pytest.mark.parametrize(
-        "real_mu, params", [[-1, [10, tol]] for tol in [1 / 10**6, 1 / 10**7, 1 / 10**8, 1 / 10**9, 1 / 10**10]]
+        "params", [{"m": 10, "tolerance": tol} for tol in (1 / 10**6, 1 / 10**7, 1 / 10**8, 1 / 10**9, 1 / 10**10)]
     )
-    def test_mu_estimation_expon_2_parameters_tol_negative(self, real_mu: float, params: list) -> None:
+    def test_mu_estimation_expon_2_parameters_tol_positive(self, params: dict) -> None:
+        real_mu = 1
         mixture = NormalMeanVarianceMixtures()
         sample = mixture.canonical_generate(10000, expon, [0, real_mu])
         est_mu = mixture.semi_param_algorithm("mu_estimation", sample, params)
         assert abs(real_mu - est_mu) < 1
 
     @pytest.mark.parametrize(
-        "real_mu, params",
+        "params", [{"m": 10, "tolerance": tol} for tol in (1 / 10**6, 1 / 10**7, 1 / 10**8, 1 / 10**9, 1 / 10**10)]
+    )
+    def test_mu_estimation_expon_2_parameters_tol_negative(self, params: dict) -> None:
+        real_mu = -1
+        mixture = NormalMeanVarianceMixtures()
+        sample = mixture.canonical_generate(10000, expon, [0, real_mu])
+        est_mu = mixture.semi_param_algorithm("mu_estimation", sample, params)
+        assert abs(real_mu - est_mu) < 1
+
+    @pytest.mark.parametrize(
+        "params",
         [
-            [1, [10, 1 / 10**9, omega]]
+            {"m": 10, "tolerance": 10**-9, "omega": omega}
             for omega in [
-                lambda x: -1 * (x**i) * math.exp(-(1 / (1 - x**2))) if abs(x) < 1 else 0 for i in range(1, 20, 2)
+                (lambda x: -1 * (x**i) * math.exp(-(1 / (1 - x**2))) if abs(x) < 1 else 0) for i in range(1, 20, 2)
             ]
         ],
     )
-    def test_mu_estimation_expon_3_parameters_omega_positive(self, real_mu: float, params: list) -> None:
+    def test_mu_estimation_expon_3_parameters_omega_positive(self, params: dict) -> None:
+        real_mu = 1
         mixture = NormalMeanVarianceMixtures()
         sample = mixture.canonical_generate(10000, expon, [0, real_mu])
         est_mu = mixture.semi_param_algorithm("mu_estimation", sample, params)
         assert abs(real_mu - est_mu) < 1
 
     @pytest.mark.parametrize(
-        "real_mu, params",
+        "params",
         [
-            [-1, [10, 1 / 10**9, omega]]
+            {"m": 10, "tolerance": 10**-9, "omega": omega}
             for omega in [
-                lambda x: -1 * (x**i) * math.exp(-(1 / (1 - x**2))) if abs(x) < 1 else 0 for i in range(1, 20, 2)
+                (lambda x: -1 * (x**i) * math.exp(-(1 / (1 - x**2))) if abs(x) < 1 else 0) for i in range(1, 20, 2)
             ]
         ],
     )
-    def test_mu_estimation_expon_3_parameters_omega_negative(self, real_mu: float, params: list) -> None:
+    def test_mu_estimation_expon_3_parameters_omega_negative(self, params: dict) -> None:
+        real_mu = -1
         mixture = NormalMeanVarianceMixtures()
         sample = mixture.canonical_generate(10000, expon, [0, real_mu])
         est_mu = mixture.semi_param_algorithm("mu_estimation", sample, params)
         assert abs(real_mu - est_mu) < 1
 
     @pytest.mark.parametrize(
-        "real_mu, params",
+        "params",
         [
-            [1, [m, tol, omega]]
-            for m in range(10, 100, 30)
-            for tol in [1 / 10**6, 1 / 10**7, 1 / 10**8]
+            {"m": m, "tolerance": tol, "omega": omega}
+            for m in (10, 40, 70, 100)
+            for tol in (1 / 10**6, 1 / 10**7, 1 / 10**8)
             for omega in [
-                lambda x: -1 * (x**i) * math.exp(-(1 / (1 - x**2))) if abs(x) < 1 else 0 for i in range(1, 6, 2)
+                (lambda x: -1 * (x**i) * math.exp(-(1 / (1 - x**2))) if abs(x) < 1 else 0) for i in range(1, 6, 2)
             ]
         ],
     )
-    def test_mu_estimation_expon_3_parameters_all_positive(self, real_mu: float, params: list) -> None:
+    def test_mu_estimation_expon_3_parameters_all_positive(self, params: dict) -> None:
+        real_mu = 1
         mixture = NormalMeanVarianceMixtures()
         sample = mixture.canonical_generate(10000, expon, [0, real_mu])
         est_mu = mixture.semi_param_algorithm("mu_estimation", sample, params)
         assert abs(real_mu - est_mu) < 1
 
     @pytest.mark.parametrize(
-        "real_mu, params",
+        "params",
         [
-            [-1, [m, tol, omega]]
-            for m in range(10, 100, 30)
-            for tol in [1 / 10**6, 1 / 10**7, 1 / 10**8]
+            {"m": m, "tolerance": tol, "omega": omega}
+            for m in (10, 40, 70, 100)
+            for tol in (1 / 10**6, 1 / 10**7, 1 / 10**8)
             for omega in [
-                lambda x: -1 * (x**i) * math.exp(-(1 / (1 - x**2))) if abs(x) < 1 else 0 for i in range(1, 6, 2)
+                (lambda x: -1 * (x**i) * math.exp(-(1 / (1 - x**2))) if abs(x) < 1 else 0) for i in range(1, 6, 2)
             ]
         ],
     )
-    def test_mu_estimation_expon_3_parameters_all_negative(self, real_mu: float, params: list) -> None:
+    def test_mu_estimation_expon_3_parameters_all_negative(self, params: dict) -> None:
+        real_mu = -1
         mixture = NormalMeanVarianceMixtures()
         sample = mixture.canonical_generate(10000, expon, [0, real_mu])
         est_mu = mixture.semi_param_algorithm("mu_estimation", sample, params)
