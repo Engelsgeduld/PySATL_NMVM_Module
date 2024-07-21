@@ -45,7 +45,7 @@ class AbstractMixtures(metaclass=ABCMeta):
         """
 
     @abstractmethod
-    def param_algorithm(self, name: str, sample: _typing.ArrayLike, params: list[float]) -> Any:
+    def param_algorithm(self, name: str, sample: _typing.ArrayLike, params: dict) -> Any:
         """Select and run parametric algorithm
 
         Args:
@@ -58,7 +58,7 @@ class AbstractMixtures(metaclass=ABCMeta):
         """
 
     @abstractmethod
-    def semi_param_algorithm(self, name: str, sample: _typing.ArrayLike, params: list[float]) -> Any:
+    def semi_param_algorithm(self, name: str, sample: _typing.ArrayLike, params: dict) -> Any:
         """Select and run semi-parametric algorithm
 
         Args:

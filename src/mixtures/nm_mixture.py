@@ -81,7 +81,7 @@ class NormalMeanMixtures(AbstractMixtures):
         normal_values = scipy.stats.norm.rvs(size=size)
         return mixing_values + sigma * normal_values
 
-    def param_algorithm(self, name: str, sample: _typing.ArrayLike, params: list[float]) -> Any:
+    def param_algorithm(self, name: str, sample: _typing.ArrayLike, params: dict) -> Any:
         """Select and run parametric algorithm for NMM
 
         Args:
@@ -92,10 +92,10 @@ class NormalMeanMixtures(AbstractMixtures):
         Returns: TODO
 
         """
-        cls = self.param_collector.dispatch(name)(sample, params)
+        cls = self.param_collector.dispatch(name)(sample, **params)
         return cls.algorithm(sample)
 
-    def semi_param_algorithm(self, name: str, sample: _typing.ArrayLike, params: list[float]) -> Any:
+    def semi_param_algorithm(self, name: str, sample: _typing.ArrayLike, params: dict) -> Any:
         """Select and run semi-parametric algorithm for NMM
 
         Args:
@@ -106,5 +106,5 @@ class NormalMeanMixtures(AbstractMixtures):
         Returns: TODO
 
         """
-        cls = self.semi_param_collector.dispatch(name)(sample, params)
+        cls = self.semi_param_collector.dispatch(name)(sample, **params)
         return cls.algorithm(sample)
