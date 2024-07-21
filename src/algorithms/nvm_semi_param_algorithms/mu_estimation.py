@@ -25,6 +25,7 @@ class SemiParametricMuEstimation:
     """
 
     class ParamsAnnotation(TypedDict, total=False):
+        """Class for parameters annotation"""
         m: float
         tolerance: float
         omega: Callable[[float], float]
@@ -37,6 +38,14 @@ class SemiParametricMuEstimation:
     def _validate_kwargs(
         self, **kwargs: Unpack[ParamsAnnotation]
     ) -> tuple[float, float, Callable[[float], float], float]:
+        """Parameters validation function
+
+        Args:
+            kwargs: Parameters of Algorithm
+
+        Returns: Parameters of Algorithm
+
+        """
         if any([i not in self.ParamsAnnotation.__annotations__ for i in kwargs]):
             raise ValueError("Got unexpected parameter")
         if "m" in kwargs and (not isinstance(kwargs.get("m"), int) or kwargs.get("m", -1) <= 0):
