@@ -26,6 +26,7 @@ class SemiParametricMuEstimation:
 
     class ParamsAnnotation(TypedDict, total=False):
         """Class for parameters annotation"""
+
         m: float
         tolerance: float
         omega: Callable[[float], float]
