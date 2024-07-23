@@ -10,12 +10,12 @@ def loss_func(true_func: Callable, rqms: Callable, count: int):
     true_value = true_func(1) - true_func(0)
     sum_of_diff = 0
     for _ in range(count):
-        sum_of_diff += abs(true_value - rqms())
+        sum_of_diff += abs(true_value - rqms()[0])
     return 1 / count * sum_of_diff
 
 
 class TestSimplyFunctions:
-    error_tolerance = 1e-3
+    error_tolerance = 1e-5
 
     def test_constant_func(self):
         rqmc = RQMC(lambda x: 1, error_tolerance=self.error_tolerance)
@@ -31,7 +31,7 @@ class TestSimplyFunctions:
 
 
 class TestHardFunctions:
-    error_tolerance = 1e-3
+    error_tolerance = 1e-4
 
     def test_trigonometric_func(self):
         rqmc = RQMC(lambda x: np.sin(x) + np.cos(x), error_tolerance=self.error_tolerance, i_max=100)
@@ -48,3 +48,22 @@ class TestHardFunctions:
             lambda x: np.sign(x - 0.5) * abs(np.log(abs(x - 0.5))), error_tolerance=self.error_tolerance, i_max=100
         )
         assert loss_func(lambda x: 0, rqmc.rqmc, 100)
+
+
+class TestArgsParse:
+    @pytest.mark.parametrize(
+        "args",
+        [
+            (-1, 1, 2, 1, 1),
+            (1, -1, 2, 1, 1),
+            (1, 1, -1, 1, 1),
+            (1, 1, 2, -1, 1),
+            (1, 1, 1, 1, -1),
+            (1, 1, 3, 1, 1),
+            (1, 1, 2, 1, 10),
+        ],
+    )
+    def test_args_parse(self, args):
+        print(args)
+        with pytest.raises(ValueError):
+            RQMC._args_parse(*args)
