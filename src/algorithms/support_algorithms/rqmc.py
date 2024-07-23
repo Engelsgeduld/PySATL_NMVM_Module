@@ -5,8 +5,10 @@ import numpy._typing as tpg
 import scipy
 from numba import njit
 
-BITS = 64
-"""Number of bits in XOR"""
+BITS = 30
+"""Number of bits in XOR. Should be less than 64"""
+NUMBA_FAST_MATH = True
+"""Flag for Numba fastmath. May be less accurate in some cases"""
 
 
 class RQMC:
@@ -38,6 +40,9 @@ class RQMC:
         self.base_n = base_n
         self.i_max = i_max
         self.z = scipy.stats.norm.ppf(1 - a / 2)
+
+        if NUMBA_FAST_MATH:
+            setattr(self, "_xor_float", njit(fastmath=True)(RQMC._xor_float))
 
     @staticmethod
     def _args_parse(error_tolerance: float, count: int, base_n: int, i_max: int, a: float) -> None:
@@ -189,6 +194,7 @@ class RQMC:
             Returns: XOR sequence with random value
 
             """
+
             return np.array(list(map(lambda x: self._xor_float(x, random_value), sequence)))
 
         pair = list(zip(sobol_sequences, xor_sample))
@@ -197,7 +203,6 @@ class RQMC:
         return sobol_sequences
 
     @staticmethod
-    @njit(fastmath=True)
     def _xor_float(a: float, b: float) -> float:
         """XOR float values
 
