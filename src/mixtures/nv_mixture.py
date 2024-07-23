@@ -4,20 +4,12 @@ import scipy
 from numpy import _typing
 
 from src.mixtures.abstract_mixture import AbstractMixtures
-from src.register.register import Registry
 
 
 class NormalVarianceMixtures(AbstractMixtures):
 
-    def __init__(self, param_collector: Registry, semi_param_collector: Registry) -> None:
-        """
-
-        Args:
-            param_collector: Collector of implementations of parametric algorithms
-            semi_param_collector: Collector of implementations of semi-parametric algorithms
-
-        """
-        super().__init__(param_collector, semi_param_collector)
+    def __init__(self) -> None:
+        super().__init__()
         ...
 
     @staticmethod
@@ -88,28 +80,30 @@ class NormalVarianceMixtures(AbstractMixtures):
         normal_values = scipy.stats.norm.rvs(size=size)
         return alpha + (mixing_values**0.5) * normal_values
 
-    def param_algorithm(self, name: str, selection: _typing.ArrayLike, params: list[float]) -> Any:
+    def param_algorithm(self, name: str, sample: _typing.ArrayLike, params: dict) -> Any:
         """Select and run parametric algorithm for NVM
 
         Args:
             name: Name of Algorithm
-            selection: Vector of random values
+            sample: Vector of random values
             params: Parameters of Algorithm
 
         Returns: TODO
 
         """
-        ...
+        cls = self.param_collector.dispatch(name)(sample, params)
+        return cls.algorithm(sample)
 
-    def semi_param_algorithm(self, name: str, selection: _typing.ArrayLike, params: list[float]) -> Any:
+    def semi_param_algorithm(self, name: str, sample: _typing.ArrayLike, params: dict) -> Any:
         """Select and run semi-parametric algorithm for NVM
 
         Args:
             name: Name of Algorithm
-            selection: Vector of random values
+            sample: Vector of random values
             params: Parameters of Algorithm
 
         Returns: TODO
 
         """
-        ...
+        cls = self.semi_param_collector.dispatch(name)(sample, **params)
+        return cls.algorithm(sample)
