@@ -1,4 +1,4 @@
-from typing import Callable, Generic, Optional, Type, TypeVar
+from typing import Callable, Generic, Optional, Tuple, Type, TypeVar
 
 T = TypeVar("T")
 
@@ -14,13 +14,15 @@ class Registry(Generic[T]):
 
         """
         self.default = default
-        self.register_of_names: dict[str, Type[T]] = {}
+        self.register_of_names: dict[Tuple[str, str], Type[T]] = {}
 
-    def register(self, name: str) -> Callable:
+    def register(self, name: str, purpose: str) -> Callable:
         """Register new object
 
         Args:
-            name: Name of lass
+            name: Class name
+            purpose: Purpose of the algorithm ("NMParametric, NVParametric, NMVParametric,
+                                                NMSemiparametric, NVSemiparametric, NMVSemiparametric")
 
         Returns: Decorator function
 
@@ -32,16 +34,27 @@ class Registry(Generic[T]):
         def decorator(cls: Type[T]) -> Type[T]:
             if name in self.register_of_names:
                 raise ValueError("This name is already registered")
-            self.register_of_names[name] = cls
+            if purpose not in [
+                "NMParametric",
+                "NVParametric",
+                "NMVParametric",
+                "NMSemiparametric",
+                "NVSemiparametric",
+                "NMVSemiparametric",
+            ]:
+                raise ValueError("Unexpected purpose value")
+            self.register_of_names[(name, purpose)] = cls
             return cls
 
         return decorator
 
-    def dispatch(self, name: str) -> Type[T]:
+    def dispatch(self, name: str, purpose: str) -> Type[T]:
         """Find object by name
 
         Args:
-            name: Name of class
+            name: Class name
+            purpose: Purpose of the algorithm ("NMParametric, NVParametric, NMVParametric,
+                                                NMSemiparametric, NVSemiparametric, NMVSemiparametric")
 
         Returns: object
 
@@ -49,8 +62,8 @@ class Registry(Generic[T]):
             ValueError: When object with this name was not found
 
         """
-        if name in self.register_of_names:
-            return self.register_of_names[name]
+        if (name, purpose) in self.register_of_names:
+            return self.register_of_names[(name, purpose)]
         if self.default is None:
-            raise ValueError(f"{name} realisation not registered")
+            raise ValueError(f"{name}, {purpose} realisation not registered")
         return self.default

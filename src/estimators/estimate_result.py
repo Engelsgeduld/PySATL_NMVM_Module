@@ -5,4 +5,4 @@ from dataclasses import dataclass
 class EstimateResult:
     value: float = -1
     success: bool = False
-    message: str = "No result"
+    message: str = "No message"
