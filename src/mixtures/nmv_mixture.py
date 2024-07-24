@@ -3,15 +3,33 @@ from typing import Any
 import scipy
 from numpy import _typing
 
-from src.algorithms.nvm_semi_param_algorithms.mu_estimation import SemiParametricMuEstimation
 from src.mixtures.abstract_mixture import AbstractMixtures
 
 
 class NormalMeanVarianceMixtures(AbstractMixtures):
 
-    def __init__(self) -> None:
-        super().__init__()
-        self.semi_param_collector.register("mu_estimation")(SemiParametricMuEstimation)
+    @staticmethod
+    def _canonical_args_validation(params: dict) -> None:
+        pass
+
+    @staticmethod
+    def _classical_args_validation(params: dict) -> None:
+        pass
+
+    def compute_moment(self) -> Any:
+        pass
+
+    def compute_cdf(self) -> Any:
+        pass
+
+    def compute_pdf(self) -> Any:
+        pass
+
+    def compute_logpdf(self) -> Any:
+        pass
+
+    def __init__(self, mixture_form) -> None:
+        super().__init__(mixture_form)
         ...
 
     @staticmethod
