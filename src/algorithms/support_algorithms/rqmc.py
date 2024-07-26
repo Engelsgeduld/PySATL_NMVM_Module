@@ -33,7 +33,7 @@ class RQMC:
         i_max: int = 100,
         a: float = 0.00047,
     ):
-        self._args_parse(error_tolerance, count, base_n, i_max, a)
+        self._args_validation(error_tolerance, count, base_n, i_max, a)
         self.func = func
         self.error_tolerance = error_tolerance
         self.count = count
@@ -45,7 +45,7 @@ class RQMC:
             setattr(self, "_xor_float", njit(fastmath=True)(RQMC._xor_float))
 
     @staticmethod
-    def _args_parse(error_tolerance: float, count: int, base_n: int, i_max: int, a: float) -> None:
+    def _args_validation(error_tolerance: float, count: int, base_n: int, i_max: int, a: float) -> None:
         """Parse arguments
 
         Args:
