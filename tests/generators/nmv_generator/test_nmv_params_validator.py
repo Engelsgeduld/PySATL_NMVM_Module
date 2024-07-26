@@ -1,5 +1,6 @@
 import pytest
 from scipy.stats import norm
+
 from src.mixtures.nmv_mixture import NormalMeanVarianceMixtures
 
 
@@ -26,7 +27,8 @@ class TestGenerateParamsValidators:
     def test_classical_wrong_distribution_type(self):
         with pytest.raises(ValueError):
             NormalMeanVarianceMixtures._classical_params_validation(
-                {"alpha": 1, "beta": 1, "gamma": 1, "distribution": 1})
+                {"alpha": 1, "beta": 1, "gamma": 1, "distribution": 1}
+            )
 
     @pytest.mark.parametrize("params", [{}, {"a": 1, "b": 2, "c": 3, "d": 4, "m": 5}])
     def test_canonical_args_validation_length_error(self, params):
@@ -34,8 +36,12 @@ class TestGenerateParamsValidators:
             NormalMeanVarianceMixtures._canonical_params_validation(params)
 
     @pytest.mark.parametrize(
-        "params", [{"wrong_alpha": 1, "mu": 1, "distribution": norm}, {"alpha": 1, "mu": 1, "wrong_distribution": norm},
-                   {"alpha": 1, "mu_wrong": 1, "distribution": norm}]
+        "params",
+        [
+            {"wrong_alpha": 1, "mu": 1, "distribution": norm},
+            {"alpha": 1, "mu": 1, "wrong_distribution": norm},
+            {"alpha": 1, "mu_wrong": 1, "distribution": norm},
+        ],
     )
     def test_canonical_wrong_names(self, params):
         with pytest.raises(ValueError):
