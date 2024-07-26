@@ -1,64 +1,45 @@
-import sys
-
-import numpy as np
 import pytest
+from scipy.stats import norm
 
-from src.mixtures.nv_mixture import *
+from src.mixtures.nv_mixture import NormalVarianceMixtures
 
 
 class TestGenerateParamsValidators:
-    @pytest.mark.parametrize(
-        "params",
-        [
-            [],
-            [0],
-            [1.111, 2.111, 3.111],
-            [1, 1, 1, 1],
-            np.random.uniform(0, 100, size=(100, 1)),
-            np.random.uniform(0, 100, size=(100, 100)),
-        ],
-    )
-    def test_classic_generate_validator_value_error_length(self, params: list[float]) -> None:
-        with pytest.raises(ValueError, match="Expected 2 parameters"):
-            NormalVarianceMixtures._classic_generate_params_validation(params)
+
+    @pytest.mark.parametrize("params", [{}, {"a": 1, "b": 2}, {"a": 1, "b": 2, "c": 3, "d": 4, "m": 5}])
+    def test_classical_args_validation_length_error(self, params):
+        with pytest.raises(ValueError):
+            NormalVarianceMixtures._classical_params_validation(params)
 
     @pytest.mark.parametrize(
         "params",
         [
-            [sys.float_info.max, sys.float_info.max],
-            [sys.float_info.min, sys.float_info.min],
-            [1, 1],
-            [0, 0],
-            [-1, -1],
-            [0.333, -0.333],
+            {"wrong_alpha": 1, "beta": 1, "distribution": norm},
+            {"alpha": 1, "wrong_beta": 1, "distribution": norm},
+            {"alpha": 1, "beta": 1, "distribution": norm},
+            {"alpha": 1, "beta": 1, "wrong_distribution": norm},
         ],
     )
-    def test_classic_generate_validator_correct(self, params: list[float]) -> None:
-        NormalVarianceMixtures._classic_generate_params_validation(params)
+    def test_classical_wrong_names(self, params):
+        with pytest.raises(ValueError):
+            NormalVarianceMixtures._classical_params_validation(params)
 
-    @pytest.mark.parametrize("params", np.random.uniform(-100, 100, size=(50, 2)))
-    def test_classic_generate_validator_correct_random(self, params: list[float]) -> None:
-        NormalVarianceMixtures._classic_generate_params_validation(params)
+    def test_classical_wrong_distribution_type(self):
+        with pytest.raises(ValueError):
+            NormalVarianceMixtures._classical_params_validation({"alpha": 1, "beta": 1, "distribution": 1})
+
+    @pytest.mark.parametrize("params", [{}, {"a": 1, "b": 2, "c": 3, "d": 4, "m": 5}])
+    def test_canonical_args_validation_length_error(self, params):
+        with pytest.raises(ValueError):
+            NormalVarianceMixtures._canonical_params_validation(params)
 
     @pytest.mark.parametrize(
-        "params",
-        [
-            [],
-            [1.111, 2.111],
-            [1, 1, 1],
-            [1, 1, 1, 1],
-            np.random.uniform(0, 100, size=(100, 1)),
-            np.random.uniform(0, 100, size=(100, 100)),
-        ],
+        "params", [{"wrong_alpha": 1, "distribution": norm}, {"alpha": 1, "wrong_distribution": norm}]
     )
-    def test_canonical_generate_validator_value_error_length(self, params: list[float]) -> None:
-        with pytest.raises(ValueError, match="Expected 1 parameter"):
-            NormalVarianceMixtures._canonical_generate_params_validation(params)
+    def test_canonical_wrong_names(self, params):
+        with pytest.raises(ValueError):
+            NormalVarianceMixtures._canonical_params_validation(params)
 
-    @pytest.mark.parametrize("params", [[sys.float_info.max], [sys.float_info.min], [1], [0], [-1], [0.333]])
-    def test_canonical_generate_validator_correct(self, params: list[float]) -> None:
-        NormalVarianceMixtures._canonical_generate_params_validation(params)
-
-    @pytest.mark.parametrize("params", np.random.uniform(-100, 100, size=(50, 1)))
-    def test_canonical_generate_validator_correct_random(self, params: list[float]) -> None:
-        NormalVarianceMixtures._canonical_generate_params_validation(params)
+    def test_canonical_wrong_distribution_type(self):
+        with pytest.raises(ValueError):
+            NormalVarianceMixtures._classical_params_validation({"alpha": 1, "distribution": 1})

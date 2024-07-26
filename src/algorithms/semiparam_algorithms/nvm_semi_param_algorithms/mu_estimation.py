@@ -1,5 +1,5 @@
 import math
-from typing import Callable, TypedDict, Unpack
+from typing import Callable, Optional, TypedDict, Unpack
 
 import mpmath
 import numpy as np
@@ -35,7 +35,7 @@ class SemiParametricMuEstimation:
         omega: Callable[[float], float]
         max_iterations: float
 
-    def __init__(self, sample: _typing.ArrayLike = None, **kwargs: Unpack[ParamsAnnotation]):
+    def __init__(self, sample: Optional[_typing.ArrayLike] = None, **kwargs: Unpack[ParamsAnnotation]):
         self.sample = np.array([]) if sample is None else sample
         self.m, self.tolerance, self.omega, self.max_iterations = self._validate_kwargs(**kwargs)
 

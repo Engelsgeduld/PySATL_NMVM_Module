@@ -9,28 +9,35 @@ from src.mixtures.abstract_mixture import AbstractMixtures
 class NormalMeanMixtures(AbstractMixtures):
     def __init__(self, mixture_form: str, **kwargs: Any) -> None:
         if mixture_form == "classical":
-            self._classical_args_validation(kwargs)
+            self._classical_params_validation(kwargs)
             self.alpha = kwargs["alpha"]
             self.beta = kwargs["beta"]
             self.gamma = kwargs["gamma"]
         elif mixture_form == "canonical":
-            self._canonical_args_validation(kwargs)
+            self._canonical_params_validation(kwargs)
             self.sigma = kwargs["sigma"]
         else:
             raise AssertionError(f"Unknown mixture form: {mixture_form}")
         self.distribution = kwargs["distribution"]
 
     @staticmethod
-    def _classical_args_validation(params: dict[str, float | rv_continuous]) -> None:
+    def _classical_params_validation(params: dict[str, float | rv_continuous]) -> None:
         """Validation parameters for classic generate for NMM
 
         Args:
-            params: Parameters of Mixture. For example: alpha, beta, gamma for NMM
+            params: Parameters of Mixture. For example: alpha, beta, gamma, distribution for NMM
 
-        Returns:
-            params: alpha, beta, gamma for NMM
+        Returns: None
+
+        Raises:
+            ValueError: If alpha not in kwargs
+            ValueError: If beta not in kwargs
+            ValueError: If gamma not in kwargs
+            ValueError: If distribution not in kwargs
+            ValueError: If distribution type is not rv_continuous
 
         """
+
         if len(params) != 4:
             raise ValueError("Expected 4 parameters")
         if "alpha" not in params:
@@ -45,16 +52,21 @@ class NormalMeanMixtures(AbstractMixtures):
             raise ValueError("Expected rv continuous distribution")
 
     @staticmethod
-    def _canonical_args_validation(params: dict[str, float | rv_continuous]) -> None:
+    def _canonical_params_validation(params: dict[str, float | rv_continuous]) -> None:
         """Validation parameters for canonical generate for NMM
 
         Args:
-            params: Parameters of Mixture. For example: sigma for NMM
+            params: Parameters of Mixture. For example: sigma, distribution for NMM
 
-        Returns:
-            params: sigma for NMM
+        Returns: None
+
+        Raises:
+            ValueError: If sigma not in kwargs
+            ValueError: If distribution not in kwargs
+            ValueError: If distribution type is not rv_continuous
 
         """
+
         if len(params) != 2:
             raise ValueError("Expected 2 parameter")
         if "sigma" not in params:

@@ -1,20 +1,25 @@
 from typing import Any
 
-import scipy
-from numpy import _typing
+from scipy.stats import rv_continuous
+from scipy.stats.distributions import rv_frozen
 
 from src.mixtures.abstract_mixture import AbstractMixtures
 
 
 class NormalMeanVarianceMixtures(AbstractMixtures):
-
-    @staticmethod
-    def _canonical_args_validation(params: dict) -> None:
-        pass
-
-    @staticmethod
-    def _classical_args_validation(params: dict) -> None:
-        pass
+    def __init__(self, mixture_form: str, **kwargs: Any) -> None:
+        if mixture_form == "classical":
+            self._classical_params_validation(kwargs)
+            self.alpha = kwargs["alpha"]
+            self.beta = kwargs["beta"]
+            self.gamma = kwargs["gamma"]
+        elif mixture_form == "canonical":
+            self._canonical_params_validation(kwargs)
+            self.alpha = kwargs["alpha"]
+            self.mu = kwargs["mu"]
+        else:
+            raise AssertionError(f"Unknown mixture form: {mixture_form}")
+        self.distribution = kwargs["distribution"]
 
     def compute_moment(self) -> Any:
         pass
@@ -28,104 +33,61 @@ class NormalMeanVarianceMixtures(AbstractMixtures):
     def compute_logpdf(self) -> Any:
         pass
 
-    def __init__(self, mixture_form) -> None:
-        super().__init__(mixture_form)
-        ...
-
     @staticmethod
-    def _classic_generate_params_validation(params: list[float]) -> tuple[float, float, float]:
+    def _classical_params_validation(params: dict) -> None:
         """Validation parameters for classic generate for NMVM
 
         Args:
-            params: Parameters of Mixture. For example: alpha, beta, gamma for NMVM
+            params: Parameters of Mixture. For example: alpha, beta, gamma, distribution for NMVM
 
-        Returns:
-            params: alpha, beta, gamma for NMVM
+        Returns: None
+
+        Raises:
+            ValueError: If alpha not in kwargs
+            ValueError: If beta not in kwargs
+            ValueError: If gamma not in kwargs
+            ValueError: If distribution not in kwargs
+            ValueError: If distribution type is not rv_continuous
 
         """
-        if len(params) != 3:
-            raise ValueError("Expected 3 parameters")
-        alpha, beta, gamma = params
-        return alpha, beta, gamma
+
+        if len(params) != 4:
+            raise ValueError("Expected 4 parameters")
+        if "alpha" not in params:
+            raise ValueError("Expected alpha")
+        if "beta" not in params:
+            raise ValueError("expected beta")
+        if "gamma" not in params:
+            raise ValueError("expected gamma")
+        if "distribution" not in params:
+            raise ValueError("expected distribution")
+        if not isinstance(params["distribution"], (rv_continuous, rv_frozen)):
+            raise ValueError("Expected rv continuous distribution")
 
     @staticmethod
-    def _canonical_generate_params_validation(params: list[float]) -> tuple[float, float]:
+    def _canonical_params_validation(params: dict) -> None:
         """Validation parameters for canonical generate for NMVM
 
         Args:
-            params: Parameters of Mixture. For example: alpha, mu for NMVM
+            params: Parameters of Mixture. For example: alpha, mu, distribution for NMVM
 
-        Returns:
-            params: alpha, mu for NMVM
+        Returns: None
 
-        """
-        if len(params) != 2:
-            raise ValueError("Expected 2 parameters")
-        alpha, mu = params
-        return alpha, mu
-
-    def classic_generate(
-        self, size: int, w_distribution: scipy.stats.rv_continuous, params: list[float]
-    ) -> _typing.ArrayLike:
-        """Generate a sample of given size. Classical form of NMVM
-
-        Args:
-            size: length of sample
-            w_distribution: Distribution of random value w
-            params: Parameters of Mixture. For example: alpha, beta, gamma for NMVM
-
-        Returns: sample of given size
+        Raises:
+            ValueError: If alpha not in kwargs
+            ValueError: If mu not in kwargs
+            ValueError: If distribution not in kwargs
+            ValueError: If distribution type is not rv_continuous
 
         """
-        alpha, beta, gamma = self._classic_generate_params_validation(params)
-        mixing_values = w_distribution.rvs(size=size)
-        normal_values = scipy.stats.norm.rvs(size=size)
-        return alpha + beta * mixing_values + gamma * (mixing_values**0.5) * normal_values
 
-    def canonical_generate(
-        self, size: int, w_distribution: scipy.stats.rv_continuous, params: list[float]
-    ) -> _typing.ArrayLike:
-        """Generate a sample of given size. Canonical form of NMVM
-
-        Args:
-            size: length of sample
-            w_distribution: Distribution of random value w
-            params: Parameters of Mixture. For example: alpha, mu for NMVM
-
-        Returns: sample of given size
-
-        """
-        alpha, mu = self._canonical_generate_params_validation(params)
-        mixing_values = w_distribution.rvs(size=size)
-        normal_values = scipy.stats.norm.rvs(size=size)
-        return alpha + mu * mixing_values + (mixing_values**0.5) * normal_values
-
-    def param_algorithm(self, name: str, sample: _typing.ArrayLike, params: dict) -> Any:
-        """Select and run parametric algorithm for NMVM
-
-        Args:
-            name: Name of Algorithm
-            sample: Vector of random values
-            params: Parameters of Algorithm
-
-        Returns: TODO
-
-        """
-        cls = self.param_collector.dispatch(name)(sample, **params)
-        return cls.algorithm(sample)
-
-    def semi_param_algorithm(self, name: str, sample: _typing.ArrayLike, params: dict = None) -> Any:
-        """Select and run semi-parametric algorithm for NMVM
-
-        Args:
-            name: Name of Algorithm
-            sample: Vector of random values
-            params: Parameters of Algorithm
-
-        Returns: TODO
-
-        """
-        if params is None:
-            params = {}
-        cls = self.semi_param_collector.dispatch(name)(sample, **params)
-        return cls.algorithm(sample)
+        if len(params) != 3:
+            raise ValueError("Expected 3 parameters")
+        if "alpha" not in params:
+            raise ValueError("Expected alpha")
+        if "mu" not in params:
+            raise ValueError("expected mu")
+        if "distribution" not in params:
+            raise ValueError("expected distribution")
+        if not isinstance(params["distribution"], (rv_continuous, rv_frozen)):
+            raise ValueError("Expected rv continuous distribution")
