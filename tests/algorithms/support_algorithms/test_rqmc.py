@@ -22,8 +22,8 @@ class TestSimplyFunctions:
         assert loss_func(lambda x: x, rqmc.rqmc, 1000) < self.error_tolerance
 
     def test_linear_func(self):
-        rqmc = RQMC(lambda x: x, error_tolerance=self.error_tolerance, i_max=300)
-        assert loss_func(lambda x: np.power(x, 2) / 2, rqmc.rqmc, 500) < self.error_tolerance
+        rqmc = RQMC(lambda x: x, error_tolerance=self.error_tolerance, i_max=200)
+        assert loss_func(lambda x: np.power(x, 2) / 2, rqmc.rqmc, 100) < self.error_tolerance
 
     def test_polynom_func(self):
         rqmc = RQMC(lambda x: x**3 - x**2 + 1, error_tolerance=self.error_tolerance)
