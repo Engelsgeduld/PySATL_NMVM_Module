@@ -1,71 +1,67 @@
 from abc import ABCMeta, abstractmethod
+from dataclasses import fields
 from typing import Any
 
-import scipy
-from numpy import _typing
-
-from src.register.register import Registry
+from scipy.stats import rv_continuous
+from scipy.stats.distributions import rv_frozen
 
 
 class AbstractMixtures(metaclass=ABCMeta):
     """Base class for Mixtures"""
 
-    def __init__(self) -> None:
-        self.param_collector: Registry = Registry()
-        self.semi_param_collector: Registry = Registry()
+    _classical_collector: Any
+    _canonical_collector: Any
 
     @abstractmethod
-    def classic_generate(
-        self, size: int, w_distribution: scipy.stats.rv_continuous, params: list[float]
-    ) -> _typing.ArrayLike:
-        """Generate a samples of given size. Classical form of Mixture
+    def __init__(self, mixture_form: str, **kwargs: Any) -> None:
+        """
 
         Args:
-            size: length of sample
-            w_distribution: Distribution of random value w
-            params: Parameters of Mixture. For example: alpha, betta, gamma for NMM
+            mixture_form: Form of Mixture classical or Canonical
+            **kwargs: Parameters of Mixture
+        """
+        if mixture_form == "classical":
+            self.params = self._params_validation(self._classical_collector, kwargs)
+        elif mixture_form == "canonical":
+            self.params = self._params_validation(self._canonical_collector, kwargs)
+        else:
+            raise AssertionError(f"Unknown mixture form: {mixture_form}")
 
-        Returns: samples of given size
+    @abstractmethod
+    def compute_moment(self) -> Any: ...
+
+    @abstractmethod
+    def compute_cdf(self) -> Any: ...
+
+    @abstractmethod
+    def compute_pdf(self) -> Any: ...
+
+    @abstractmethod
+    def compute_logpdf(self) -> Any: ...
+
+    def _params_validation(self, data_collector: Any, params: dict[str, float | rv_continuous | rv_frozen]) -> Any:
+        """Mixture Parameters Validation
+
+        Args:
+            data_collector: Dataclass that collect parameters of Mixture
+            params: Input parameters
+
+        Returns: Instance of dataclass
+
+        Raises:
+            ValueError: If given parameters is unexpected
+            ValueError: If parameter type is invalid
+            ValueError: If parameters age not given
 
         """
 
-    @abstractmethod
-    def canonical_generate(
-        self, size: int, w_distribution: scipy.stats.rv_continuous, params: list[float]
-    ) -> _typing.ArrayLike:
-        """Generate a samples of given size. Canonical form of Mixture
-
-        Args:
-            size: length of sample
-            w_distribution: Distribution of random value w
-            params: Parameters of Mixture. For example: theta for NMM
-
-        Returns: samples of given size
-
-        """
-
-    @abstractmethod
-    def param_algorithm(self, name: str, sample: _typing.ArrayLike, params: dict) -> Any:
-        """Select and run parametric algorithm
-
-        Args:
-            name: Name of Algorithm
-            sample: Vector of random values
-            params: Parameters of Algorithm
-
-        Returns: TODO
-
-        """
-
-    @abstractmethod
-    def semi_param_algorithm(self, name: str, sample: _typing.ArrayLike, params: dict) -> Any:
-        """Select and run semi-parametric algorithm
-
-        Args:
-            name: Name of Algorithm
-            sample: Vector of random values
-            params: Parameters of Algorithm
-
-        Returns: TODO
-
-        """
+        if len(params) == 0:
+            raise ValueError("Empty parameters dict")
+        dataclass_fields = fields(data_collector)
+        names_and_types = dict((field.name, field.type) for field in dataclass_fields)
+        for pair in params.items():
+            if pair[0] not in names_and_types:
+                raise ValueError(f"Unexpected parameter {pair[0]}")
+            if not isinstance(pair[1], names_and_types[pair[0]]):
+                raise ValueError(f"Type missmatch: {pair[0]} should be {names_and_types[pair[0]]}, not {type(pair[1])}")
+        return data_collector(**params)

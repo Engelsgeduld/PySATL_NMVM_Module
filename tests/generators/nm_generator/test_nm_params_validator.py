@@ -1,63 +1,38 @@
-import sys
-
-import numpy as np
 import pytest
+from scipy.stats import norm
 
-from src.mixtures.nm_mixture import *
+from src.mixtures.nm_mixture import NormalMeanMixtures
 
 
 class TestGenerateParamsValidators:
     @pytest.mark.parametrize(
         "params",
-        [[], [1], [1.111, 2.111], [1, 1, 1, 1], np.random.uniform(-100, 100, size=(100, 1))],
-    )
-    def test_classic_generate_validator_value_error_length(self, params: list[float]) -> None:
-        with pytest.raises(ValueError, match="Expected 3 parameters"):
-            NormalMeanMixtures._classic_generate_params_validation(params)
-
-    @pytest.mark.parametrize(
-        "params",
         [
-            [sys.float_info.max, sys.float_info.max, sys.float_info.max],
-            [1, 1, 1],
-            [0, 0, 0],
-            [-1, -1, -1],
-            [0.333, 0.333, 0.666],
+            {"wrong_alpha": 1, "beta": 1, "gamma": 1, "distribution": norm},
+            {"alpha": 1, "wrong_beta": 1, "gamma": 1, "distribution": norm},
+            {"alpha": 1, "beta": 1, "wrong_gamma": 1, "distribution": norm},
+            {"alpha": 1, "beta": 1, "gamma": 1, "wrong_distribution": norm},
         ],
     )
-    def test_classic_generate_validator_correct(self, params: list[float]) -> None:
-        NormalMeanMixtures._classic_generate_params_validation(params)
+    def test_classical_wrong_names(self, params):
+        with pytest.raises(ValueError):
+            NormalMeanMixtures("classical", **params)
 
-    @pytest.mark.parametrize("params", np.random.uniform(-100, 100, size=(50, 3)))
-    def test_classic_generate_validator_correct_random(self, params: list[float]) -> None:
-        NormalMeanMixtures._classic_generate_params_validation(params)
-
-    @pytest.mark.parametrize(
-        "params",
-        [
-            [],
-            [1.111, 2.111],
-            [1, 1, 1],
-            [1, 1, 1, 1],
-            np.random.uniform(1, 100, size=(100, 1)),
-        ],
-    )
-    def test_canonical_generate_validator_value_error_length(self, params: list[float]) -> None:
-        with pytest.raises(ValueError, match="Expected 1 parameter"):
-            NormalMeanMixtures._canonical_generate_params_validation(params)
+    def test_classical_wrong_distribution_type(self):
+        with pytest.raises(ValueError):
+            NormalMeanMixtures("classical", **{"alpha": 1, "beta": 1, "gamma": 1, "distribution": 1})
 
     @pytest.mark.parametrize(
-        "params",
-        [[-1], [-1000], [-9999]],
+        "params", [{"wrong_sigma": 1, "distribution": norm}, {"sigma": 1, "wrong_distribution": norm}]
     )
-    def test_canonical_generate_validator_value_error_sign(self, params: list[float]) -> None:
-        with pytest.raises(ValueError, match="Expected parameter greater than or equal to zero"):
-            NormalMeanMixtures._canonical_generate_params_validation(params)
+    def test_canonical_wrong_names(self, params):
+        with pytest.raises(ValueError):
+            NormalMeanMixtures("canonical", **params)
 
-    @pytest.mark.parametrize("params", [[sys.float_info.max], [1], [0], [0.333], [10000]])
-    def test_canonical_generate_validator_correct(self, params: list[float]) -> None:
-        NormalMeanMixtures._canonical_generate_params_validation(params)
+    def test_canonical_wrong_distribution_type(self):
+        with pytest.raises(ValueError):
+            NormalMeanMixtures("canonical", **{"sigma": 1, "distribution": 1})
 
-    @pytest.mark.parametrize("params", np.random.uniform(1, 100, size=(50, 1)))
-    def test_canonical_generate_validator_correct_random(self, params: list[float]) -> None:
-        NormalMeanMixtures._canonical_generate_params_validation(params)
+    def test_canonical_wrong_sigma_sign(self):
+        with pytest.raises(ValueError):
+            NormalMeanMixtures("canonical", **{"sigma": -1, "distribution": norm})

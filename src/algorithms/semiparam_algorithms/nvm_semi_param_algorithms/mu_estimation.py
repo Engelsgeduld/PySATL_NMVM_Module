@@ -1,9 +1,11 @@
 import math
-from typing import Callable, TypedDict, Unpack
+from typing import Callable, Optional, TypedDict, Unpack
 
 import mpmath
 import numpy as np
 from numpy import _typing
+
+from src.estimators.estimate_result import EstimateResult
 
 M_DEFAULT_VALUE = 1000
 TOLERANCE_DEFAULT_VALUE = 10**-5
@@ -33,7 +35,7 @@ class SemiParametricMuEstimation:
         omega: Callable[[float], float]
         max_iterations: float
 
-    def __init__(self, sample: _typing.ArrayLike = None, **kwargs: Unpack[ParamsAnnotation]):
+    def __init__(self, sample: Optional[_typing.ArrayLike] = None, **kwargs: Unpack[ParamsAnnotation]):
         self.sample = np.array([]) if sample is None else sample
         self.m, self.tolerance, self.omega, self.max_iterations = self._validate_kwargs(**kwargs)
 
@@ -82,7 +84,7 @@ class SemiParametricMuEstimation:
             y += e * self.omega(x)
         return y
 
-    def algorithm(self, sample: np._typing.NDArray) -> float:
+    def algorithm(self, sample: np._typing.NDArray) -> EstimateResult:
         """Root of this function is an estimation of mu
 
         Args:
@@ -91,25 +93,25 @@ class SemiParametricMuEstimation:
         Returns: estimated mu value
 
         """
-
         if self.__w(0, sample) == 0:
-            return 0
+            return EstimateResult(value=0, success=True)
         if self.__w(0, sample) > 0:
-            return -1 * self.algorithm(-1 * sample)
+            second_result = self.algorithm(-1 * sample)
+            return EstimateResult(-1 * second_result.value, second_result.success)
         if self.__w(self.m, sample) < 0:
-            return self.m
+            return EstimateResult(value=self.m, success=False)
 
         left, right = 0.0, self.m
         iteration = 0
         while left <= right:
             mid = (right + left) / 2
             if iteration > self.max_iterations:
-                return mid
+                return EstimateResult(value=mid, success=False)
             iteration += 1
             if abs(self.__w(mid, sample)) < self.tolerance:
-                return mid
+                return EstimateResult(value=mid, success=True)
             elif self.__w(mid, sample) < 0:
                 left = mid
             else:
                 right = mid
-        return -1
+        return EstimateResult(value=-1, success=False)

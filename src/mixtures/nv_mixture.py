@@ -1,109 +1,47 @@
+from dataclasses import dataclass
 from typing import Any
 
-import scipy
-from numpy import _typing
+from scipy.stats import rv_continuous
+from scipy.stats.distributions import rv_frozen
 
 from src.mixtures.abstract_mixture import AbstractMixtures
 
 
+@dataclass
+class _NVMClassicDataCollector:
+    """TODO: Change typing from float | int | etc to Protocol with __addition__ __multiplication__ __subtraction__"""
+
+    """Data Collector for parameters of classical NVM"""
+    alpha: float | int
+    gamma: float | int
+    distribution: rv_frozen | rv_continuous
+
+
+@dataclass
+class _NVMCanonicalDataCollector:
+    """TODO: Change typing from float | int | etc to Protocol with __addition__ __multiplication__ __subtraction__"""
+
+    """Data Collector for parameters of canonical NVM"""
+    alpha: float | int
+    distribution: rv_frozen | rv_continuous
+
+
 class NormalVarianceMixtures(AbstractMixtures):
 
-    def __init__(self) -> None:
-        super().__init__()
-        ...
+    _classical_collector = _NVMClassicDataCollector
+    _canonical_collector = _NVMCanonicalDataCollector
 
-    @staticmethod
-    def _classic_generate_params_validation(params: list[float]) -> tuple[float, float]:
-        """Validation parameters for classic generate for NVM
+    def __init__(self, mixture_form: str, **kwargs: Any) -> None:
+        super().__init__(mixture_form, **kwargs)
 
-        Args:
-            params: Parameters of Mixture. For example: alpha, gamma for NVM
+    def compute_moment(self) -> Any:
+        raise NotImplementedError("Must implement compute_moment")
 
-        Returns:
-            params: alpha, gamma for NVM
+    def compute_cdf(self) -> Any:
+        raise NotImplementedError("Must implement cdf")
 
-        """
-        if len(params) != 2:
-            raise ValueError("Expected 2 parameters")
-        alpha, gamma = params
-        return alpha, gamma
+    def compute_pdf(self) -> Any:
+        raise NotImplementedError("Must implement pdf")
 
-    @staticmethod
-    def _canonical_generate_params_validation(params: list[float]) -> float:
-        """Validation parameters for canonical generate for NVM
-
-        Args:
-            params: Parameters of Mixture. For example: alpha for NVM
-
-        Returns:
-            params: alpha for NVM
-
-        """
-        if len(params) != 1:
-            raise ValueError("Expected 1 parameter")
-        alpha = params[0]
-        return alpha
-
-    def classic_generate(
-        self, size: int, w_distribution: scipy.stats.rv_continuous, params: list[float]
-    ) -> _typing.ArrayLike:
-        """Generate a sample of given size. Classical form of NVM
-
-        Args:
-            size: length of sample
-            w_distribution: Distribution of random value w
-            params: Parameters of Mixture. For example: alpha, gamma for NVM
-
-        Returns: sample of given size
-
-        """
-        alpha, gamma = self._classic_generate_params_validation(params)
-        mixing_values = w_distribution.rvs(size=size)
-        normal_values = scipy.stats.norm.rvs(size=size)
-        return alpha + gamma * (mixing_values**0.5) * normal_values
-
-    def canonical_generate(
-        self, size: int, w_distribution: scipy.stats.rv_continuous, params: list[float]
-    ) -> _typing.ArrayLike:
-        """Generate a sample of given size. Canonical form of NVM
-
-        Args:
-            size: length of sample
-            w_distribution: Distribution of random value w
-            params: Parameters of Mixture. For example: alpha for NVM
-
-        Returns: sample of given size
-
-        """
-        alpha = self._canonical_generate_params_validation(params)
-        mixing_values = w_distribution.rvs(size=size)
-        normal_values = scipy.stats.norm.rvs(size=size)
-        return alpha + (mixing_values**0.5) * normal_values
-
-    def param_algorithm(self, name: str, sample: _typing.ArrayLike, params: dict) -> Any:
-        """Select and run parametric algorithm for NVM
-
-        Args:
-            name: Name of Algorithm
-            sample: Vector of random values
-            params: Parameters of Algorithm
-
-        Returns: TODO
-
-        """
-        cls = self.param_collector.dispatch(name)(sample, params)
-        return cls.algorithm(sample)
-
-    def semi_param_algorithm(self, name: str, sample: _typing.ArrayLike, params: dict) -> Any:
-        """Select and run semi-parametric algorithm for NVM
-
-        Args:
-            name: Name of Algorithm
-            sample: Vector of random values
-            params: Parameters of Algorithm
-
-        Returns: TODO
-
-        """
-        cls = self.semi_param_collector.dispatch(name)(sample, **params)
-        return cls.algorithm(sample)
+    def compute_logpdf(self) -> Any:
+        raise NotImplementedError("Must implement logpdf")
