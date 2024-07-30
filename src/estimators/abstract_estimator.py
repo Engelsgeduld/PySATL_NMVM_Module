@@ -8,7 +8,23 @@ from src.estimators.estimate_result import EstimateResult
 
 
 class AbstractEstimator:
+    """Base class for Estimators
+
+    Attributes:
+        algorithm_name: A string indicating chosen algorithm.
+        params: A dictionary of algorithm parameters.
+        estimate_result: Estimation result.
+        _registry: Registry that contains classes of all algorithms.
+        _purpose: Defines purpose of algorithm, one of the registry key.
+    """
     def __init__(self, algorithm_name: str, params: dict | None = None) -> None:
+        """Initializes the instance based on algorithm name and params.
+
+        Args:
+            algorithm_name: A string indicating chosen algorithm.
+            params: A dictionary of algorithm parameters.
+        """
+
         self.algorithm_name = algorithm_name
         if params is None:
             self.params = dict()
@@ -16,7 +32,7 @@ class AbstractEstimator:
             self.params = params
         self.estimate_result = EstimateResult()
         self._registry = ALGORITHM_REGISTRY
-        self._purpose = ""
+        self._purpose = None
 
     def get_params(self) -> dict:
         return {"algorithm_name": self.algorithm_name, "params": self.params, "estimated_result": self.estimate_result}
@@ -29,10 +45,17 @@ class AbstractEstimator:
             self.params = params
         return self
 
-    def get_available_algorithms(self) -> list[tuple[str, str]]:
-        return [key for key in self._registry.register_of_names.keys() if key[1] == self._purpose]
+    def get_available_algorithms(self) -> list[str]:
+        """Get all algorithms that can be used for current estimator class"""
+        return [key[0] for key in self._registry.register_of_names.keys() if key[1] == self._purpose]
 
     def estimate(self, sample: _typing.ArrayLike) -> EstimateResult:
+        """Applies an algorithm to the given sample
+
+        Args:
+            sample: sample of the analysed distribution
+
+        """
         cls = None
         if (self.algorithm_name, self._purpose) in self._registry.register_of_names:
             cls = self._registry.dispatch(self.algorithm_name, self._purpose)(sample, **self.params)
