@@ -1,5 +1,4 @@
 from typing import Callable, Generic, Optional, Tuple, Type, TypeVar
-import enum
 
 from src.register.algorithm_purpose import AlgorithmPurpose
 
