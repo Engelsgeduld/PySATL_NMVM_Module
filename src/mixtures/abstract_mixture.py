@@ -1,20 +1,31 @@
 from abc import ABCMeta, abstractmethod
+from dataclasses import fields
 from typing import Any
+
+from scipy.stats import rv_continuous
+from scipy.stats.distributions import rv_frozen
 
 
 class AbstractMixtures(metaclass=ABCMeta):
     """Base class for Mixtures"""
 
-    @abstractmethod
-    def __init__(self, mixture_form: str, **kwargs: Any) -> None: ...
+    _classical_collector: Any
+    _canonical_collector: Any
 
-    @staticmethod
     @abstractmethod
-    def _canonical_params_validation(params: dict) -> None: ...
+    def __init__(self, mixture_form: str, **kwargs: Any) -> None:
+        """
 
-    @staticmethod
-    @abstractmethod
-    def _classical_params_validation(params: dict) -> None: ...
+        Args:
+            mixture_form: Form of Mixture classical or Canonical
+            **kwargs: Parameters of Mixture
+        """
+        if mixture_form == "classical":
+            self.params = self._params_validation(self._classical_collector, kwargs)
+        elif mixture_form == "canonical":
+            self.params = self._params_validation(self._canonical_collector, kwargs)
+        else:
+            raise AssertionError(f"Unknown mixture form: {mixture_form}")
 
     @abstractmethod
     def compute_moment(self) -> Any: ...
@@ -27,3 +38,30 @@ class AbstractMixtures(metaclass=ABCMeta):
 
     @abstractmethod
     def compute_logpdf(self) -> Any: ...
+
+    def _params_validation(self, data_collector: Any, params: dict[str, float | rv_continuous | rv_frozen]) -> Any:
+        """Mixture Parameters Validation
+
+        Args:
+            data_collector: Dataclass that collect parameters of Mixture
+            params: Input parameters
+
+        Returns: Instance of dataclass
+
+        Raises:
+            ValueError: If given parameters is unexpected
+            ValueError: If parameter type is invalid
+            ValueError: If parameters age not given
+
+        """
+
+        if len(params) == 0:
+            raise ValueError("Empty parameters dict")
+        dataclass_fields = fields(data_collector)
+        names_and_types = dict((field.name, field.type) for field in dataclass_fields)
+        for pair in params.items():
+            if pair[0] not in names_and_types:
+                raise ValueError(f"Unexpected parameter {pair[0]}")
+            if not isinstance(pair[1], names_and_types[pair[0]]):
+                raise ValueError(f"Type missmatch: {pair[0]} should be {names_and_types[pair[0]]}, not {type(pair[1])}")
+        return data_collector(**params)

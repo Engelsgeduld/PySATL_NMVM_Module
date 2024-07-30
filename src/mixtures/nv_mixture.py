@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import Any
 
 from scipy.stats import rv_continuous
@@ -6,69 +7,41 @@ from scipy.stats.distributions import rv_frozen
 from src.mixtures.abstract_mixture import AbstractMixtures
 
 
+@dataclass
+class _NVMClassicDataCollector:
+    """TODO: Change typing from float | int | etc to Protocol with __addition__ __multiplication__ __subtraction__"""
+
+    """Data Collector for parameters of classical NVM"""
+    alpha: float | int
+    gamma: float | int
+    distribution: rv_frozen | rv_continuous
+
+
+@dataclass
+class _NVMCanonicalDataCollector:
+    """TODO: Change typing from float | int | etc to Protocol with __addition__ __multiplication__ __subtraction__"""
+
+    """Data Collector for parameters of canonical NVM"""
+    alpha: float | int
+    distribution: rv_frozen | rv_continuous
+
+
 class NormalVarianceMixtures(AbstractMixtures):
 
+    _classical_collector = _NVMClassicDataCollector
+    _canonical_collector = _NVMCanonicalDataCollector
+
     def __init__(self, mixture_form: str, **kwargs: Any) -> None:
-        if mixture_form == "classical":
-            self._classical_params_validation(kwargs)
-            self.alpha = kwargs["alpha"]
-            self.gamma = kwargs["gamma"]
-        elif mixture_form == "canonical":
-            self._canonical_params_validation(kwargs)
-            self.alpha = kwargs["alpha"]
-        else:
-            raise AssertionError(f"Unknown mixture form: {mixture_form}")
-        self.distribution = kwargs["distribution"]
+        super().__init__(mixture_form, **kwargs)
 
-    @staticmethod
-    def _classical_params_validation(params: dict) -> None:
-        """Validation parameters for classic generate for NVM
+    def compute_moment(self) -> Any:
+        raise NotImplementedError("Must implement compute_moment")
 
-        Args:
-            params: Parameters of Mixture. For example: alpha, gamma, distribution for NVM
+    def compute_cdf(self) -> Any:
+        raise NotImplementedError("Must implement cdf")
 
-        Returns: None
+    def compute_pdf(self) -> Any:
+        raise NotImplementedError("Must implement pdf")
 
-        Raises:
-            ValueError: If alpha not in kwargs
-            ValueError: If gamma not in kwargs
-            ValueError: If distribution not in kwargs
-            ValueError: If distribution type is not rv_continuous
-
-        """
-
-        if len(params) != 3:
-            raise ValueError("Expected 3 parameters")
-        if "alpha" not in params:
-            raise ValueError("Expected alpha")
-        if "gamma" not in params:
-            raise ValueError("expected gamma")
-        if "distribution" not in params:
-            raise ValueError("expected distribution")
-        if not isinstance(params["distribution"], (rv_continuous, rv_frozen)):
-            raise ValueError("Expected rv continuous distribution")
-
-    @staticmethod
-    def _canonical_params_validation(params: dict) -> None:
-        """Validation parameters for canonical generate for NVM
-
-        Args:
-            params: Parameters of Mixture. For example: alpha, distribution for NVM
-
-        Returns: None
-
-        Raises:
-            ValueError: If alpha not in kwargs
-            ValueError: If distribution not in kwargs
-            ValueError: If distribution type is not rv_continuous
-
-        """
-
-        if len(params) != 2:
-            raise ValueError("Expected 2 parameter")
-        if "alpha" not in params:
-            raise ValueError("Expected alpha")
-        if "distribution" not in params:
-            raise ValueError("expected distribution")
-        if not isinstance(params["distribution"], (rv_continuous, rv_frozen)):
-            raise ValueError("Expected rv continuous distribution")
+    def compute_logpdf(self) -> Any:
+        raise NotImplementedError("Must implement logpdf")

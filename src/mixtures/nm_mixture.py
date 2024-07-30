@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import Any
 
 from scipy.stats import rv_continuous
@@ -6,77 +7,50 @@ from scipy.stats.distributions import rv_frozen
 from src.mixtures.abstract_mixture import AbstractMixtures
 
 
+@dataclass
+class _NMMClassicDataCollector:
+    """TODO: Change typing from float | int | etc to Protocol with __addition__ __multiplication__ __subtraction__"""
+
+    """Data Collector for parameters of classical NMM"""
+    alpha: float | int
+    beta: float | int
+    gamma: float | int
+    distribution: rv_frozen | rv_continuous
+
+
+@dataclass
+class _NMMCanonicalDataCollector:
+    """TODO: Change typing from float | int | etc to Protocol with __addition__ __multiplication__ __subtraction__"""
+
+    """Data Collector for parameters of canonical NMM"""
+    sigma: float | int
+    distribution: rv_frozen | rv_continuous
+
+
 class NormalMeanMixtures(AbstractMixtures):
+    _classical_collector = _NMMClassicDataCollector
+    _canonical_collector = _NMMCanonicalDataCollector
+
     def __init__(self, mixture_form: str, **kwargs: Any) -> None:
-        if mixture_form == "classical":
-            self._classical_params_validation(kwargs)
-            self.alpha = kwargs["alpha"]
-            self.beta = kwargs["beta"]
-            self.gamma = kwargs["gamma"]
-        elif mixture_form == "canonical":
-            self._canonical_params_validation(kwargs)
-            self.sigma = kwargs["sigma"]
-        else:
-            raise AssertionError(f"Unknown mixture form: {mixture_form}")
-        self.distribution = kwargs["distribution"]
+        """
+        Read Doc of Parent Method
+        """
 
-    @staticmethod
-    def _classical_params_validation(params: dict[str, float | rv_continuous]) -> None:
-        """Validation parameters for classic generate for NMM
+        super().__init__(mixture_form, **kwargs)
 
-        Args:
-            params: Parameters of Mixture. For example: alpha, beta, gamma, distribution for NMM
-
-        Returns: None
+    def _params_validation(self, data_collector: Any, params: dict[str, float | rv_continuous | rv_frozen]) -> Any:
+        """
+        Read parent method doc
 
         Raises:
-            ValueError: If alpha not in kwargs
-            ValueError: If beta not in kwargs
-            ValueError: If gamma not in kwargs
-            ValueError: If distribution not in kwargs
-            ValueError: If distribution type is not rv_continuous
+            ValueError: If canonical Mixture has negative sigma parameter
 
         """
 
-        if len(params) != 4:
-            raise ValueError("Expected 4 parameters")
-        if "alpha" not in params:
-            raise ValueError("Expected alpha")
-        if "beta" not in params:
-            raise ValueError("expected beta")
-        if "gamma" not in params:
-            raise ValueError("expected gamma")
-        if "distribution" not in params:
-            raise ValueError("expected distribution")
-        if not isinstance(params["distribution"], (rv_continuous, rv_frozen)):
-            raise ValueError("Expected rv continuous distribution")
-
-    @staticmethod
-    def _canonical_params_validation(params: dict[str, float | rv_continuous]) -> None:
-        """Validation parameters for canonical generate for NMM
-
-        Args:
-            params: Parameters of Mixture. For example: sigma, distribution for NMM
-
-        Returns: None
-
-        Raises:
-            ValueError: If sigma not in kwargs
-            ValueError: If distribution not in kwargs
-            ValueError: If distribution type is not rv_continuous
-
-        """
-
-        if len(params) != 2:
-            raise ValueError("Expected 2 parameter")
-        if "sigma" not in params:
-            raise ValueError("Expected sigma")
-        if params["sigma"] < 0:
-            raise ValueError("Expected parameter greater than or equal to zero")
-        if "distribution" not in params:
-            raise ValueError("expected distribution")
-        if not isinstance(params["distribution"], (rv_continuous, rv_frozen)):
-            raise ValueError("Expected rv continuous distribution")
+        data_class = super()._params_validation(data_collector, params)
+        if hasattr(data_class, "sigma") and data_class.sigma < 0:
+            raise ValueError("Sigma is negative")
+        return data_class
 
     def compute_moment(self) -> Any:
         raise NotImplementedError("Must implement compute_moment")

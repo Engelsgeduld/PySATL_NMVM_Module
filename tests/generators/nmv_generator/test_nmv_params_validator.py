@@ -6,11 +6,6 @@ from src.mixtures.nmv_mixture import NormalMeanVarianceMixtures
 
 class TestGenerateParamsValidators:
 
-    @pytest.mark.parametrize("params", [{}, {"a": 1, "b": 2}, {"a": 1, "b": 2, "c": 3, "d": 4, "m": 5}])
-    def test_classical_args_validation_length_error(self, params):
-        with pytest.raises(ValueError):
-            NormalMeanVarianceMixtures._classical_params_validation(params)
-
     @pytest.mark.parametrize(
         "params",
         [
@@ -22,18 +17,11 @@ class TestGenerateParamsValidators:
     )
     def test_classical_wrong_names(self, params):
         with pytest.raises(ValueError):
-            NormalMeanVarianceMixtures._classical_params_validation(params)
+            NormalMeanVarianceMixtures("classical", **params)
 
     def test_classical_wrong_distribution_type(self):
         with pytest.raises(ValueError):
-            NormalMeanVarianceMixtures._classical_params_validation(
-                {"alpha": 1, "beta": 1, "gamma": 1, "distribution": 1}
-            )
-
-    @pytest.mark.parametrize("params", [{}, {"a": 1, "b": 2, "c": 3, "d": 4, "m": 5}])
-    def test_canonical_args_validation_length_error(self, params):
-        with pytest.raises(ValueError):
-            NormalMeanVarianceMixtures._canonical_params_validation(params)
+            NormalMeanVarianceMixtures("classical", **{"alpha": 1, "beta": 1, "gamma": 1, "distribution": 1})
 
     @pytest.mark.parametrize(
         "params",
@@ -45,8 +33,8 @@ class TestGenerateParamsValidators:
     )
     def test_canonical_wrong_names(self, params):
         with pytest.raises(ValueError):
-            NormalMeanVarianceMixtures._canonical_params_validation(params)
+            NormalMeanVarianceMixtures("canonical", **params)
 
     def test_canonical_wrong_distribution_type(self):
         with pytest.raises(ValueError):
-            NormalMeanVarianceMixtures._classical_params_validation({"alpha": 1, "mu": 1, "distribution": 1})
+            NormalMeanVarianceMixtures("canonical", **{"alpha": 1, "mu": 1, "distribution": 1})
