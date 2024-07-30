@@ -2,6 +2,7 @@ import enum
 
 
 class AlgorithmPurpose(enum.Enum):
+    DEFAULT = "Any"
     NM_PARAMETRIC = "Normal Mean Parametric"
     NV_PARAMETRIC = "Normal Variance Parametric"
     NMV_PARAMETRIC = "Normal Mean-Variance Parametric"

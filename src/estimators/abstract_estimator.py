@@ -5,6 +5,7 @@ from numpy import _typing
 
 from src.algorithms import ALGORITHM_REGISTRY
 from src.estimators.estimate_result import EstimateResult
+from src.register.algorithm_purpose import AlgorithmPurpose
 
 
 class AbstractEstimator:
@@ -17,6 +18,7 @@ class AbstractEstimator:
         _registry: Registry that contains classes of all algorithms.
         _purpose: Defines purpose of algorithm, one of the registry key.
     """
+
     def __init__(self, algorithm_name: str, params: dict | None = None) -> None:
         """Initializes the instance based on algorithm name and params.
 
@@ -32,7 +34,7 @@ class AbstractEstimator:
             self.params = params
         self.estimate_result = EstimateResult()
         self._registry = ALGORITHM_REGISTRY
-        self._purpose = None
+        self._purpose = AlgorithmPurpose.DEFAULT
 
     def get_params(self) -> dict:
         return {"algorithm_name": self.algorithm_name, "params": self.params, "estimated_result": self.estimate_result}
