@@ -1,4 +1,7 @@
 from typing import Callable, Generic, Optional, Tuple, Type, TypeVar
+import enum
+
+from src.register.algorithm_purpose import AlgorithmPurpose
 
 T = TypeVar("T")
 
@@ -14,9 +17,9 @@ class Registry(Generic[T]):
 
         """
         self.default = default
-        self.register_of_names: dict[Tuple[str, str], Type[T]] = {}
+        self.register_of_names: dict[Tuple[str, AlgorithmPurpose], Type[T]] = {}
 
-    def register(self, name: str, purpose: str) -> Callable:
+    def register(self, name: str, purpose: AlgorithmPurpose) -> Callable:
         """Register new object
 
         Args:
@@ -34,21 +37,14 @@ class Registry(Generic[T]):
         def decorator(cls: Type[T]) -> Type[T]:
             if name in self.register_of_names:
                 raise ValueError("This name is already registered")
-            if purpose not in [
-                "NMParametric",
-                "NVParametric",
-                "NMVParametric",
-                "NMSemiparametric",
-                "NVSemiparametric",
-                "NMVSemiparametric",
-            ]:
+            if not isinstance(purpose, AlgorithmPurpose):
                 raise ValueError("Unexpected purpose value")
             self.register_of_names[(name, purpose)] = cls
             return cls
 
         return decorator
 
-    def dispatch(self, name: str, purpose: str) -> Type[T]:
+    def dispatch(self, name: str, purpose: AlgorithmPurpose) -> Type[T]:
         """Find object by name
 
         Args:
