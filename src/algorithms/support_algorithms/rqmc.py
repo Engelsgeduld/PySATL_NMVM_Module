@@ -111,9 +111,8 @@ class RQMC:
         Returns: Updated mean of row
 
         """
-        return (i * old_value + (i + self.base_n) * self._independent_estimator(new_values[: i * self.base_n])) / (
-            2 * i + self.base_n
-        )
+
+        return (i * old_value + self._independent_estimator(new_values[i * self.base_n :])) / (i + 1)
 
     def _update(
         self, j: int, old_values: np._typing.NDArray, random_matrix: np._typing.NDArray
@@ -167,9 +166,9 @@ class RQMC:
             if current_error_tolerance < self.error_tolerance:
                 return approximation, current_error_tolerance
             sobol_sampler.reset()
-            sobol_sample = np.repeat(sobol_sampler.random(self.base_n * i).transpose(), self.count, axis=0)
+            sobol_sample = np.repeat(sobol_sampler.random(self.base_n * (i + 1)).transpose(), self.count, axis=0)
             sample = self._digital_shift(sobol_sample, xor_sample)
-            approximation, values = self._update(i * self.base_n, values, sample)
+            approximation, values = self._update(i, values, sample)
             current_error_tolerance = self._sigma(values, approximation) * self.z
         return approximation, current_error_tolerance
 

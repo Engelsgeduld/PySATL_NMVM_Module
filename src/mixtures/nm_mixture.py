@@ -1,9 +1,10 @@
 from dataclasses import dataclass
 from typing import Any
 
-from scipy.stats import rv_continuous
+from scipy.stats import norm, rv_continuous
 from scipy.stats.distributions import rv_frozen
 
+from src.algorithms.support_algorithms.rqmc import RQMC
 from src.mixtures.abstract_mixture import AbstractMixtures
 
 
@@ -55,11 +56,14 @@ class NormalMeanMixtures(AbstractMixtures):
     def compute_moment(self) -> Any:
         raise NotImplementedError("Must implement compute_moment")
 
-    def compute_cdf(self) -> Any:
-        raise NotImplementedError("Must implement cdf")
+    def compute_cdf(self, x: float, params: dict) -> tuple[float, float]:
+        rqmc = RQMC(lambda u: self.params.distribution.cdf(x - norm.ppf(u)), **params)
+        return rqmc()
 
-    def compute_pdf(self) -> Any:
-        raise NotImplementedError("Must implement pdf")
+    def compute_pdf(self, x: float, params: dict) -> tuple[float, float]:
+        rqmc = RQMC(lambda u: self.params.distribution.pdf(x - norm.ppf(u)), **params)
+        return rqmc()
 
-    def compute_logpdf(self) -> Any:
-        raise NotImplementedError("Must implement logpdf")
+    def compute_logpdf(self, x: float, params: dict) -> tuple[float, float]:
+        rqmc = RQMC(lambda u: norm.pdf(x - self.params.distribution.ppf(u)), **params)
+        return rqmc()

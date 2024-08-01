@@ -1,9 +1,12 @@
 from dataclasses import dataclass
 from typing import Any
 
-from scipy.stats import rv_continuous
+import numpy as np
+from scipy.stats import norm, rv_continuous
 from scipy.stats.distributions import rv_frozen
 
+from src.algorithms.support_algorithms.log_rqmc import LogRQMC
+from src.algorithms.support_algorithms.rqmc import RQMC
 from src.mixtures.abstract_mixture import AbstractMixtures
 
 
@@ -38,11 +41,37 @@ class NormalMeanVarianceMixtures(AbstractMixtures):
     def compute_moment(self) -> Any:
         pass
 
-    def compute_cdf(self) -> Any:
-        pass
+    def _classical_cdf(self, s: float, x: float) -> float:
+        beta = self.params.beta
+        gamma = self.params.gamma if isinstance(self.params, _NMVMClassicDataCollector) else 1
+        parametric_norm = norm(0, gamma)
+        return parametric_norm.cdf(
+            (x - self.params.alpha) / np.sqrt(self.params.distribution.ppf(s))
+            - beta / gamma**2 * np.sqrt(self.params.distribution.ppf(s))
+        )
 
-    def compute_pdf(self) -> Any:
-        pass
+    def compute_cdf(self, x: float, params: dict) -> tuple[float, float]:
+        rqmc = RQMC(lambda s: self._classical_cdf(s, x), **params)
+        return rqmc()
 
-    def compute_logpdf(self) -> Any:
-        pass
+    def _cdf_under_func(self, s: float, x: float) -> float:
+        def first_exp(s: float) -> float:
+            return np.exp(-((x**2) / 2) / s)
+
+        def second_exp(s: float, beta: float) -> float:
+            return np.exp(beta**2 * s / 2)
+
+        def sqrt_part(s: float) -> float:
+            return np.sqrt(2 * np.pi * self.params.distribution.ppf(s))
+
+        if isinstance(self.params, _NMVMClassicDataCollector):
+            return first_exp(s) * second_exp(s, self.params.beta) / sqrt_part(s)
+        return first_exp(s) * second_exp(s, self.params.mu) / sqrt_part(s)
+
+    def compute_pdf(self, x: float, params: dict) -> tuple[float, float]:
+        rqmc = RQMC(lambda s: self._cdf_under_func(s, x), **params)
+        return np.exp(self.params.mu * x) * rqmc()
+
+    def compute_logpdf(self, x: float, params: dict) -> tuple[float, float]:
+        log_rqmc = LogRQMC(lambda s: self._cdf_under_func(s, x), **params)
+        return self.params.mu * x * log_rqmc()
