@@ -12,7 +12,7 @@ class TestSemiParametricMixingDensityEstimationGivenMu:
     def test_g_estimation_expon(self) -> None:
         real_g = expon.pdf
         given_mu = 1
-        n = 1
+        n = 100
 
         mixture = NormalMeanVarianceMixtures("canonical", alpha=0, mu=given_mu, distribution=expon)
         sample = NMVGenerator().canonical_generate(mixture, n)
