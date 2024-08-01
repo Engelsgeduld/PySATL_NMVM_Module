@@ -97,7 +97,7 @@ class SemiParametricMuEstimation:
             return EstimateResult(value=0, success=True)
         if self.__w(0, sample) > 0:
             second_result = self.algorithm(-1 * sample)
-            return EstimateResult(-1 * second_result.value, second_result.success)
+            return EstimateResult(value=-1 * second_result.value, success=second_result.success)
         if self.__w(self.m, sample) < 0:
             return EstimateResult(value=self.m, success=False)
 
