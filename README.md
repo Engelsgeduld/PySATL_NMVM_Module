@@ -66,7 +66,7 @@ sample = generator.classical_generate(mixture, 5000)
 ```
 
 Histogram of *sample* values:
-![usage_example_1](./usage_example_1.svg)
+![usage_example_1](images/usage_example_1.svg)
 
 ### Calculation of standard statistical characteristics of mixture:
 * Calculation of pobability density function
