@@ -1,9 +1,12 @@
 from dataclasses import dataclass
 from typing import Any
 
-from scipy.stats import rv_continuous
+import numpy as np
+from scipy.stats import norm, rv_continuous
 from scipy.stats.distributions import rv_frozen
 
+from src.algorithms.support_algorithms.log_rqmc import LogRQMC
+from src.algorithms.support_algorithms.rqmc import RQMC
 from src.mixtures.abstract_mixture import AbstractMixtures
 
 
@@ -37,11 +40,27 @@ class NormalVarianceMixtures(AbstractMixtures):
     def compute_moment(self) -> Any:
         raise NotImplementedError("Must implement compute_moment")
 
-    def compute_cdf(self) -> Any:
-        raise NotImplementedError("Must implement cdf")
+    def compute_cdf(self, x: float, params: dict) -> tuple[float, float]:
+        rqmc = RQMC(
+            lambda u: norm(0, self.params.gamma if isinstance(self.params, _NVMClassicDataCollector) else 1).cdf(
+                x / np.sqrt(self.params.distribution.ppf(u))
+            ),
+            **params
+        )
+        return rqmc()
 
-    def compute_pdf(self) -> Any:
-        raise NotImplementedError("Must implement pdf")
+    def _integrand_func(self, u: float, d: float) -> float:
+        gamma = self.params.gamma if isinstance(self.params, _NVMClassicDataCollector) else 1
+        return (1 / (np.pi * 2 * self.params.distribution.ppf(u) * np.abs(gamma**2))) * np.exp(
+            -1 * d / (2 * self.params.distribution.ppf(u))
+        )
 
-    def compute_logpdf(self) -> Any:
-        raise NotImplementedError("Must implement logpdf")
+    def compute_pdf(self, x: float, params: dict) -> tuple[float, float]:
+        d = (x - self.params.alpha) ** 2 / self.params.gamma**2
+        rqmc = RQMC(lambda u: self._integrand_func(u, d), **params)
+        return rqmc()
+
+    def compute_logpdf(self, x: float, params: dict) -> tuple[float, float]:
+        d = (x - self.params.alpha) ** 2 / self.params.gamma**2
+        log_rqmc = LogRQMC(lambda u: self._integrand_func(u, d), **params)
+        return log_rqmc()
