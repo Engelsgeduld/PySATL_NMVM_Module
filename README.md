@@ -10,10 +10,6 @@
 
 Python package for statistical analysis of Normal Mean or/and Variance Mixtures.
 
-#### Contributors:
-* Andreev Sergey - [andreev-sergej](https://github.com/andreev-sergej)
-* Knyazev Dmitrii - [Engelsgeduld](https://github.com/Engelsgeduld)
-
 # Installation
 For usage:
 ```
@@ -66,6 +62,8 @@ $Y_{NVM}(\xi, \alpha) = \alpha + \sqrt{\xi} \cdot N$ \
 $Y_{NMVM}(\xi, \alpha, \mu) = \alpha + \mu \cdot \xi + \sqrt{\xi} \cdot N$\
 where $\alpha, \mu, \sigma \in \R$; $N \sim \mathcal{N}(0, 1); \xi \sim g(x)$
 
+Normal Mean or/and Variance Mixtures have useful applications in statistical analysis and financial math.
+
 # Mixture sample generation:
 Classes are implemented in directory [**src.mixtures**](https://github.com/Engelsgeduld/PySATL_NMVM_Module/tree/main/src/mixtures) .
 
@@ -88,7 +86,7 @@ mixture = NormalMeanVarianceMixtures("classical", alpha=1.2, beta=2.2, gamma=1, 
 Example of mixture sample generation:
 ```Python
 from src.generators.nm_generator import NMGenerator
-from src.mixtures.nmv_mixture import *
+from src.mixtures.nm_mixture import *
 from scipy.stats import expon
 
 generator = NMGenerator()
@@ -100,14 +98,105 @@ Histogram of *sample* values:
 ![usage_example_1](images/usage_example_1.svg)
 
 # Calculation of standard statistical characteristics of mixture:
-* Calculation of pobability density function
-* Cumulative distribution function
-* Moments
-* Standard deviation and expected value.
--notebook_link-
+* Calculation of pobability density function\
+`compute_pdf()`
+* Calculation of logarithm of pobability density function\
+`compute_logpdf()`
+* Cumulative distribution function\
+`compute_cdf()`
+* Moments calculation\
+`compute_moment()`
+
+# Support algorithms
+## Randomized Quasi-Monte Carlo method
 
 # Parameter estimation algorithms for Normal Mean or/and Variance Mixtures:
 * ## Semiparametric estimation of parameter $\mu$ in Normal Mean-Variance mixture.
-    
+    Parameter $\mu$ estimation for $Y_{NMVM}(\xi, \alpha, \mu) = \alpha + \mu \cdot \xi + \sqrt{\xi} \cdot N$\
+    where $\alpha = 0; N \sim \mathcal{N}(0, 1); \xi \sim g(x)$
 
-* ## Estimation of mixing density g(x) for given $\mu$ in Normal Mean-Variance mixture.
+    Algorithm was created by Belomestny & Panov(2017)
+
+    ### Parameters
+    `m` - Search area radius\
+    `tolerance` - Defines error tolerance to stop bisection algorithm\
+    `max_iterations` - Maximum allowed iterations for bisection algorithm\
+    `omega` - Lipschitz continuous odd function on $\R$ with compact support\
+
+    Algorithm returns estimated $\mu$ value and estimation successfulness.
+
+    ### Usage
+    ```Python
+    from scipy.stats import halfnorm
+    from src.estimators.semiparametric.nmv_semiparametric_estimator import NMVSemiParametricEstimator
+    from src.generators.nmv_generator import NMVGenerator
+    from src.mixtures.nmv_mixture import NormalMeanVarianceMixtures
+
+    # Generate sample of NMV-mixture with parameter mu = 2 to test the algorithm
+    mixture = NormalMeanVarianceMixtures("canonical", alpha=0, mu=2, distribution=halfnorm)
+    sample = NMVGenerator().canonical_generate(mixture, 1000)
+
+    # Create new estimator for NMV-mixture and select an algorithm by its name
+    estimator = NMVSemiParametricEstimator("mu_estimation", {"m": 10, "tolerance": 10 ** -5})
+    estimate_result = estimator.estimate(sample)
+    print("Estimated mu value: ", estimate_result.value, "\nEstimation is successful: ", estimate_result.success)
+    ```
+    Output:
+    ```
+    Estimated mu value:  2.0798295736312866 
+    Estimation is successful:  True
+    ```
+* ## Estimation of mixing density for given $\mu$ in Normal Mean-Variance mixture.
+    Mixing density function $g(x)$ estimation for $Y_{NMVM}(\xi, \alpha, \mu) = \alpha + \mu \cdot \xi + \sqrt{\xi} \cdot N$\
+    where $\alpha = 0, \mu \in \R; N \sim \mathcal{N}(0, 1); \xi \sim g(x)$
+
+    Algorithm was created by Belomestny & Panov(2017)
+
+    ### Parameters
+    `mu` - Parameter $\mu$ of NMV-mixture\
+    `gmm` - Parameter $\gamma$ for Belomestny & Panov(2017) algorithm\
+    `u_value` - Parameter $U_n$ for Belomestny & Panov(2017) algorithm\
+    `v_value` - Parameter $V_n$ for Belomestny & Panov(2017) algorithm\
+    `x_data` - Points to estimate function $g(x)$
+
+    Algorithm returns list of estimated g(x) values and estimation successfulness.
+
+    ### Usage:
+    For demonstration purposes to use the algorithm we can generate sample from NMV mixture with parameter $\mu = 1$, size 25 values and mixing density function $g(x) = exp(-x)$
+    ```Python
+    from scipy.stats import expon
+    from src.generators.nmv_generator import NMVGenerator
+    from src.mixtures.nmv_mixture import NormalMeanVarianceMixtures
+
+    real_g = expon.pdf # Real g(x)
+
+    mixture = NormalMeanVarianceMixtures("canonical", alpha=0, mu=1, distribution=expon)
+    sample = NMVGenerator().canonical_generate(mixture, 25)
+    ```
+    Now we assume that we know nothing about $g(x)$, and try to estimate it in points 0.5, 1 and 2.
+    ```Python
+    from src.estimators.semiparametric.nmv_semiparametric_estimator import NMVSemiParametricEstimator
+
+    x_data = [0.5, 1, 2] # x points, where to estimate g(x)
+    estimator = NMVSemiParametricEstimator(
+        "g_estimation_given_mu", {"x_data": x_data, "u_value": 7.6, "v_value": 0.9}
+    )
+    est = estimator.estimate(sample) # est is EstimateResult object
+    ```
+    Result of the estimation can be accesses by `est.list_value`
+    ```
+    x = 0.5, Real g(x) value:  0.6065 Estimated:  0.9727
+    x = 1,   Real g(x) value:  0.3678 Estimated:  0.5227
+    x = 2,   Real g(x) value:  0.1353 Estimated:  0.1866
+    ```
+
+
+
+# Reference list
+* Hintz, E., Hofert, M., & Lemieux, C. (2019). Normal variance mixtures: Distribution, density and parameter estimation. Comput. Stat. Data Anal., 157, 107175.
+* Belomestny, D., & Panov, V. (2017). Semiparametric estimation in the normal variance-mean mixture model. Statistics, 52, 571 - 589.
+
+
+# Contributors:
+* Andreev Sergey - [andreev-sergej](https://github.com/andreev-sergej)
+* Knyazev Dmitrii - [Engelsgeduld](https://github.com/Engelsgeduld)
