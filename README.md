@@ -11,7 +11,7 @@
 Python package for statistical analysis of Normal Mean or/and Variance Mixtures.
 
 # Installation
-For usage:
+Requirements:
 ```
 pip install requirements.txt
 ```
@@ -21,7 +21,6 @@ pip install requirements.dev.txt
 ```
 
 # Requirements
-Usage:
 * `numpy~=1.26.4`
 * `scipy~=1.13.1`
 * `matplotlib~=3.8.4`
@@ -39,28 +38,28 @@ Development:
 
 # Theoretical basis
 
-#### Normal Mean Mixture
-$Y_{NMM}$ is called Normal Mean Mixture (NMM) if it can be represented in classical form with parameters $\alpha$, $\beta$, $\gamma$ $\in \R$ and mixing density function $g(x)$ as:\
+### Normal Mean Mixture
+$Y_{NMM}$ is called Normal Mean Mixture (NMM) if it can be represented in classical form with parameters $\alpha$, $\beta$, $\gamma$ $\in \mathbf{R}$ and mixing density function $g(x)$ as:\
 \
 $Y_{NMM} = \alpha + \beta \cdot \xi + \gamma \cdot N$, where $N \sim \mathcal{N}(0, 1), \xi \sim g(x)$ and $\xi \perp N$
 
-#### Normal Variance Mixture
-$Y_{NVM}$ is called Normal Variance Mixture (NVM) if it can be represented in classical form with parameters $\alpha$, $\beta$, $\gamma$ $\in \R$ and mixing density function $g(x)$ as:\
+### Normal Variance Mixture
+$Y_{NVM}$ is called Normal Variance Mixture (NVM) if it can be represented in classical form with parameters $\alpha$, $\beta$, $\gamma$ $\in \mathbf{R}$ and mixing density function $g(x)$ as:\
 \
 $Y_{NVM} = \alpha + \gamma \cdot \sqrt{\xi} \cdot N$, where $N \sim \mathcal{N}(0, 1), \xi \sim g(x)$ and $\xi \perp N$
 
-#### Normal Mean-Variance Mixture 
-$Y_{NMVM}$ is called Normal Mean-Variance Mixture (NMVM) if it can be represented in classical form with parameters $\alpha$, $\beta$, $\gamma$ $\in \R$ and mixing density function $g(x)$ as:\
+### Normal Mean-Variance Mixture 
+$Y_{NMVM}$ is called Normal Mean-Variance Mixture (NMVM) if it can be represented in classical form with parameters $\alpha$, $\beta$, $\gamma$ $\in \mathbf{R}$ and mixing density function $g(x)$ as:\
 \
 $Y_{NMVM}$ = $\alpha  + \beta \cdot \xi +  \gamma \cdot \sqrt{\xi} \cdot N$, where $N \sim \mathcal{N}(0, 1), \xi \sim g(x)$ and $\xi \perp N$
 
 Problem with classical representation is that it is not unique. So usually it is more convenient to make some substitutions and get canonical representation of mixture.
 
-### Canonical representations
+## Canonical representations
 $Y_{NMM}(\xi, \sigma) = \xi + \sigma \cdot N$ \
 $Y_{NVM}(\xi, \alpha) = \alpha + \sqrt{\xi} \cdot N$ \
 $Y_{NMVM}(\xi, \alpha, \mu) = \alpha + \mu \cdot \xi + \sqrt{\xi} \cdot N$\
-where $\alpha, \mu, \sigma \in \R$; $N \sim \mathcal{N}(0, 1); \xi \sim g(x)$
+where $\alpha, \mu, \sigma \in \mathbf{R}$; $N \sim \mathcal{N}(0, 1); \xi \sim g(x)$
 
 Normal Mean or/and Variance Mixtures have useful applications in statistical analysis and financial math.
 
@@ -94,7 +93,7 @@ mixture = NormalMeanMixtures("classical", alpha=1.6, beta=4, gamma=1, distributi
 sample = generator.classical_generate(mixture, 5000)
 ```
 
-Histogram of *sample* values:
+Histogram of *sample* values:\
 ![usage_example_1](images/usage_example_1.svg)
 
 # Calculation of standard statistical characteristics of mixture:
@@ -108,7 +107,23 @@ Histogram of *sample* values:
 `compute_moment()`
 
 # Support algorithms
-## Randomized Quasi-Monte Carlo method
+## Randomized Quasi-Monte Carlo method (RQMC)
+Computes given integral with the limits of integration being 0 and 1 using Randomized Quasi-Monte Carlo method.
+
+### Parameters:
+`func`: integrated function\
+`error_tolerance`: pre-specified error tolerance\
+`count`: number of rows of random values matrix\
+`base_n`: number of columns of random values matrix\
+`i_max`: allowed number of cycles\
+`a`: parameter for quantile of normal distribution
+
+### Usage:
+```Python
+from src.algorithms.support_algorithms.rqmc import RQMC
+rqmc = RQMC(lambda x: x**3 - x**2 + 1, error_tolerance=1e-5)
+```
+So `rqmc()[0]` is estimated integral value and `rqmc()[1]` is current error tolerance.
 
 # Parameter estimation algorithms for Normal Mean or/and Variance Mixtures:
 * ## Semiparametric estimation of parameter $\mu$ in Normal Mean-Variance mixture.
@@ -121,7 +136,7 @@ Histogram of *sample* values:
     `m` - Search area radius\
     `tolerance` - Defines error tolerance to stop bisection algorithm\
     `max_iterations` - Maximum allowed iterations for bisection algorithm\
-    `omega` - Lipschitz continuous odd function on $\R$ with compact support\
+    `omega` - Lipschitz continuous odd function on $\mathbf{R}$ with compact support\
 
     Algorithm returns estimated $\mu$ value and estimation successfulness.
 
@@ -148,7 +163,7 @@ Histogram of *sample* values:
     ```
 * ## Estimation of mixing density for given $\mu$ in Normal Mean-Variance mixture.
     Mixing density function $g(x)$ estimation for $Y_{NMVM}(\xi, \alpha, \mu) = \alpha + \mu \cdot \xi + \sqrt{\xi} \cdot N$\
-    where $\alpha = 0, \mu \in \R; N \sim \mathcal{N}(0, 1); \xi \sim g(x)$
+    where $\alpha = 0, \mu \in \mathbf{R}; N \sim \mathcal{N}(0, 1); \xi \sim g(x)$
 
     Algorithm was created by Belomestny & Panov(2017)
 
