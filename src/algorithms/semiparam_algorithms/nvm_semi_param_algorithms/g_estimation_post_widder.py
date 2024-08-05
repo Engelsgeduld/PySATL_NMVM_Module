@@ -9,9 +9,9 @@ from sympy import bell
 from src.estimators.estimate_result import EstimateResult
 
 MU_DEFAULT_VALUE = 0.1
-SIGMA_DEFAULT_VALUE = 1
+SIGMA_DEFAULT_VALUE = 1.0
 N_DEFAULT_VALUE = 2
-X_DATA_DEFAULT_VALUE = [1]
+X_DATA_DEFAULT_VALUE = [1.0]
 
 
 class SemiParametricGEstimationPostWidder:
@@ -51,7 +51,7 @@ class SemiParametricGEstimationPostWidder:
         return complex(y, (-1 * self.mu * (2 * y) ** 0.5) / self.sigma)
 
     def xi(self, z: complex) -> complex:
-        return (2 * z - self.mu ** 2) ** 0.5 + complex(0, self.mu)
+        return (2 * z - self.mu**2) ** 0.5 + complex(0, self.mu)
 
     def f_coeff(self, k: int) -> int:
         x_last = (math.factorial(2 * (self.n - k))) / (2 ** (self.n - k) * math.factorial(self.n - k))
@@ -62,23 +62,31 @@ class SemiParametricGEstimationPostWidder:
         for j in range(1, self.sample_size + 1):
             k_sum = complex(0, 0)
             for k in range(1, self.n + 1):
-                k_sum = (k_sum + complex(0, self.sample[j - 1]) ** k * (-1) ** (self.n - k) * (
-                            2 * self.generalized_post_widder_g(self.n / x) - self.mu ** 2) ** (
-                                     k / 2 - self.n)) * self.f_coeff(k)
+                k_sum = (
+                    k_sum
+                    + complex(0, self.sample[j - 1]) ** k
+                    * (-1) ** (self.n - k)
+                    * (2 * self.generalized_post_widder_g(self.n / x) - self.mu**2) ** (k / 2 - self.n)
+                ) * self.f_coeff(k)
             exp_factor = mpmath.exp(
-                complex(0, 1) * self.xi(self.generalized_post_widder_g(self.n / x)) * self.sample[j - 1])
+                complex(0, 1) * self.xi(self.generalized_post_widder_g(self.n / x)) * self.sample[j - 1]
+            )
             j_sum += exp_factor * k_sum
-        result = self.p_x_first_factor * self.generalized_post_widder_g(self.n / x) ** (self.n + 1) * (
-                    1 / self.sample_size) * j_sum
+        result = (
+            self.p_x_first_factor
+            * self.generalized_post_widder_g(self.n / x) ** (self.n + 1)
+            * (1 / self.sample_size)
+            * j_sum
+        )
         return result.real
 
     def algorithm(self, sample: np._typing.NDArray) -> EstimateResult:
         """Estimate g(x)
 
-                Args:
-                    sample: sample of the analysed distribution
+        Args:
+            sample: sample of the analysed distribution
 
-                Returns: estimated g function value in x_data points
+        Returns: estimated g function value in x_data points
 
         """
         y_data = [max(0, self.p_x_estimation(x)) for x in self.x_data]

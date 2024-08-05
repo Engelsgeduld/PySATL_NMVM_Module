@@ -12,12 +12,11 @@ class TestPostWidder:
 
     @pytest.mark.parametrize(
         "mu, sigma, degree, sample_size",
-        [(0.1, 1, 2, 10000), (0.1, 1, 3, 10000), (0.5, 2, 2, 10000), (1, 1, 2, 10000), (2, 2, 2, 10000)]
+        [(0.1, 1, 2, 10000), (0.1, 1, 3, 10000), (0.5, 2, 2, 10000), (1, 1, 2, 10000), (2, 2, 2, 10000)],
     )
     def test_post_widder_expon(self, mu, sigma, degree, sample_size) -> None:
 
-        mixture = NormalMeanVarianceMixtures("classical", alpha=0, beta=mu, gamma=sigma,
-                                             distribution=expon)
+        mixture = NormalMeanVarianceMixtures("classical", alpha=0, beta=mu, gamma=sigma, distribution=expon)
         sample = NMVGenerator().classical_generate(mixture, sample_size)
         x_data = np.linspace(0.5, 10.0, 30)
 
@@ -31,11 +30,16 @@ class TestPostWidder:
 
     @pytest.mark.parametrize(
         "mu, sigma, degree, sample_size, a",
-        [(0.1, 1, 2, 10000, 1), (0.1, 1, 3, 10000, 2), (0.5, 2, 2, 10000, 3), (1, 1, 2, 10000, 0.5), (2, 2, 2, 10000, 1)]
+        [
+            (0.1, 1, 2, 10000, 1),
+            (0.1, 1, 3, 10000, 2),
+            (0.5, 2, 2, 10000, 3),
+            (1, 1, 2, 10000, 0.5),
+            (2, 2, 2, 10000, 1),
+        ],
     )
     def test_post_widder_gamma(self, mu, sigma, degree, sample_size, a) -> None:
-        mixture = NormalMeanVarianceMixtures("classical", alpha=0, beta=mu, gamma=sigma,
-                                             distribution=gamma(a))
+        mixture = NormalMeanVarianceMixtures("classical", alpha=0, beta=mu, gamma=sigma, distribution=gamma(a))
         sample = NMVGenerator().classical_generate(mixture, sample_size)
         x_data = np.linspace(0.5, 10.0, 30)
 
