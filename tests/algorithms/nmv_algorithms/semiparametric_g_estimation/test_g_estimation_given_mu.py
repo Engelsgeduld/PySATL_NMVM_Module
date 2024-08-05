@@ -10,10 +10,7 @@ from src.mixtures.nmv_mixture import NormalMeanVarianceMixtures
 
 class TestSemiParametricMixingDensityEstimationGivenMu:
 
-    @pytest.mark.parametrize(
-        "x_data",
-        [[0.1, 0.5, 1]]
-    )
+    @pytest.mark.parametrize("x_data", [[0.1, 0.5, 1]])
     def test_g_estimation_expon(self, x_data) -> None:
         real_g = expon.pdf
         given_mu = 1
