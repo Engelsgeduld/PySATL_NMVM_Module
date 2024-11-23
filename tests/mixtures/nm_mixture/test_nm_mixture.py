@@ -171,12 +171,12 @@ class TestSkewNormalDistribution:
         mix_and_distrib = []
         for params in grid_params:
             a = params[0]
-            delta = a / np.sqrt(1 + a ** 2)
-            scale = 1/delta
+            delta = a / np.sqrt(1 + a**2)
+            scale = 1 / delta
             nm_mixture, grid = create_mixture_and_grid(
                 {
                     "mixture_form": "canonical",
-                    "sigma": scale * np.sqrt(1 - delta ** 2),
+                    "sigma": scale * np.sqrt(1 - delta**2),
                     "distribution": halfnorm(),
                 }
             )

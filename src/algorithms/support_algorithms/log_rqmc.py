@@ -19,7 +19,8 @@ class LogRQMC(RQMC):
     ):
         super().__init__(func, error_tolerance, count, base_n, i_max, a)
 
-    def lse(self, args: tpg.NDArray) -> float:
+    @staticmethod
+    def lse(args: tpg.NDArray) -> float:
         """
         Compute LSE
         Args:
