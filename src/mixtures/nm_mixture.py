@@ -1,9 +1,11 @@
 from dataclasses import dataclass
 from typing import Any
 
+import numpy as np
 from scipy.stats import norm, rv_continuous
 from scipy.stats.distributions import rv_frozen
 
+from src.algorithms.support_algorithms.log_rqmc import LogRQMC
 from src.algorithms.support_algorithms.rqmc import RQMC
 from src.mixtures.abstract_mixture import AbstractMixtures
 
@@ -13,9 +15,9 @@ class _NMMClassicDataCollector:
     """TODO: Change typing from float | int | etc to Protocol with __addition__ __multiplication__ __subtraction__"""
 
     """Data Collector for parameters of classical NMM"""
-    alpha: float | int
-    beta: float | int
-    gamma: float | int
+    alpha: float | int | np.int64
+    beta: float | int | np.int64
+    gamma: float | int | np.int64
     distribution: rv_frozen | rv_continuous
 
 
@@ -24,7 +26,7 @@ class _NMMCanonicalDataCollector:
     """TODO: Change typing from float | int | etc to Protocol with __addition__ __multiplication__ __subtraction__"""
 
     """Data Collector for parameters of canonical NMM"""
-    sigma: float | int
+    sigma: float | int | np.int64
     distribution: rv_frozen | rv_continuous
 
 
@@ -56,14 +58,147 @@ class NormalMeanMixtures(AbstractMixtures):
     def compute_moment(self) -> Any:
         raise NotImplementedError("Must implement compute_moment")
 
+    def _canonical_compute_cdf(self, x: float, params: dict) -> tuple[float, float]:
+        """
+        Equation for canonical cdf
+        Args:
+            x (): point
+            params (): parameters of RQMC algorithm
+
+        Returns: computed cdf and error tolerance
+
+        """
+        rqmc = RQMC(lambda u: norm.cdf((x - self.params.distribution.ppf(u)) / np.abs(self.params.sigma)), **params)
+        return rqmc()
+
+    def _classical_compute_cdf(self, x: float, params: dict) -> tuple[float, float]:
+        """
+        Equation for classic cdf
+        Args:
+            x (): point
+            params (): parameters of RQMC algorithm
+
+        Returns: computed cdf and error tolerance
+
+        """
+        rqmc = RQMC(
+            lambda u: norm.cdf(
+                (x - self.params.alpha - self.params.beta * self.params.distribution.ppf(u)) / np.abs(self.params.gamma)
+            ),
+            **params
+        )
+        return rqmc()
+
     def compute_cdf(self, x: float, params: dict) -> tuple[float, float]:
-        rqmc = RQMC(lambda u: self.params.distribution.cdf(x - norm.ppf(u)), **params)
+        """
+        Choose equation for cdf estimation depends on Mixture form
+        Args:
+            x (): point
+            params (): parameters of RQMC algorithm
+
+        Returns: Computed pdf and error tolerance
+
+        """
+        if isinstance(self.params, _NMMCanonicalDataCollector):
+            return self._canonical_compute_cdf(x, params)
+        return self._classical_compute_cdf(x, params)
+
+    def _canonical_compute_pdf(self, x: float, params: dict) -> tuple[float, float]:
+        """
+        Equation for canonical pdf
+        Args:
+            x (): point
+            params (): parameters of RQMC algorithm
+
+        Returns: computed pdf and error tolerance
+
+        """
+        rqmc = RQMC(
+            lambda u: (1 / np.abs(self.params.sigma))
+            * norm.pdf((x - self.params.distribution.ppf(u)) / np.abs(self.params.sigma)),
+            **params
+        )
+        return rqmc()
+
+    def _classical_compute_pdf(self, x: float, params: dict) -> tuple[float, float]:
+        """
+        Equation for classic pdf
+        Args:
+            x (): point
+            params (): parameters of RQMC algorithm
+
+        Returns: computed pdf and error tolerance
+
+        """
+        rqmc = RQMC(
+            lambda u: (1 / np.abs(self.params.gamma))
+            * norm.pdf(
+                (x - self.params.alpha - self.params.beta * self.params.distribution.ppf(u)) / np.abs(self.params.gamma)
+            ),
+            **params
+        )
         return rqmc()
 
     def compute_pdf(self, x: float, params: dict) -> tuple[float, float]:
-        rqmc = RQMC(lambda u: self.params.distribution.pdf(x - norm.ppf(u)), **params)
+        """
+        Choose equation for pdf estimation depends on Mixture form
+        Args:
+            x (): point
+            params (): parameters of RQMC algorithm
+
+        Returns: Computed pdf and error tolerance
+
+        """
+        if isinstance(self.params, _NMMCanonicalDataCollector):
+            return self._canonical_compute_pdf(x, params)
+        return self._classical_compute_pdf(x, params)
+
+    def _classical_compute_log_pdf(self, x: float, params: dict) -> tuple[float, float]:
+        """
+        Equation for classic log pdf
+        Args:
+            x (): point
+            params (): parameters of LogRQMC algorithm
+
+        Returns: computed log pdf and error tolerance
+
+        """
+        rqmc = LogRQMC(
+            lambda u: np.log(1 / np.abs(self.params.gamma))
+            + norm.logpdf(
+                (x - self.params.alpha - self.params.beta * self.params.distribution.ppf(u)) / np.abs(self.params.gamma)
+            ),
+            **params
+        )
+        return rqmc()
+
+    def _canonical_compute_log_pdf(self, x: float, params: dict) -> tuple[float, float]:
+        """
+        Equation for canonical log pdf
+        Args:
+            x (): point
+            params (): parameters of LogRQMC algorithm
+
+        Returns: computed log pdf and error tolerance
+
+        """
+        rqmc = LogRQMC(
+            lambda u: np.log(1 / np.abs(self.params.sigma))
+            + norm.logpdf((x - self.params.distribution.ppf(u)) / np.abs(self.params.sigma)),
+            **params
+        )
         return rqmc()
 
     def compute_logpdf(self, x: float, params: dict) -> tuple[float, float]:
-        rqmc = RQMC(lambda u: norm.pdf(x - self.params.distribution.ppf(u)), **params)
-        return rqmc()
+        """
+        Choose equation for log pdf estimation depends on Mixture form
+        Args:
+            x (): point
+            params (): parameters of LogRQMC algorithm
+
+        Returns: Computed log pdf and error tolerance
+
+        """
+        if isinstance(self.params, _NMMCanonicalDataCollector):
+            return self._canonical_compute_log_pdf(x, params)
+        return self._classical_compute_log_pdf(x, params)

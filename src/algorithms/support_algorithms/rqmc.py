@@ -134,8 +134,8 @@ class RQMC:
             value = self._update_independent_estimator(j, old_value, new_values)
             values.append(value)
             sum_of_new += value
-        values = np.array(values)
-        return (1 / self.count) * sum_of_new, values
+        np_values = np.array(values)
+        return (1 / self.count) * sum_of_new, np_values
 
     def _sigma(self, values: np._typing.NDArray, approximation: float) -> float:
         """Calculate parameter sigma for estimation
