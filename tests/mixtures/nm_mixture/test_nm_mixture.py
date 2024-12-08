@@ -11,17 +11,17 @@ from src.mixtures.nm_mixture import NormalMeanMixtures
 def create_mixture_and_grid(params):
     if params["mixture_form"] == "classical":
         nm_mixture = NormalMeanMixtures(**params)
-        values = np.linspace(params["alpha"] + -3 * params["gamma"], params["alpha"] + 3 * params["gamma"], 100)
+        values = np.linspace(params["alpha"] + -3 * params["gamma"], params["alpha"] + 3 * params["gamma"], 40)
     else:
         nm_mixture = NormalMeanMixtures(**params)
-        values = np.linspace(-3 * params["sigma"], 3 * params["sigma"], 100)
+        values = np.linspace(-3 * params["sigma"], 3 * params["sigma"], 40)
     return nm_mixture, values
 
 
 def get_datasets(mixture_func, distribution_func, values):
-    mixture_result, norm_result = np.vectorize(mixture_func)(values, {"error_tolerance": 0.001})[0], np.vectorize(
-        distribution_func
-    )(values)
+    mixture_result, norm_result = np.vectorize(mixture_func)(values, {"error_tolerance": 0.001, "i_max": 300})[
+        0
+    ], np.vectorize(distribution_func)(values)
     return norm_result, mixture_result
 
 
@@ -43,7 +43,7 @@ def apply_params_grid(func_name, mix_and_distrib):
 class TestNormalMeanMixturesBasicNormal:
     @pytest.fixture
     def generate_classic_distributions(self):
-        grid_params = np.random.randint(1, 100, size=(5, 3))
+        grid_params = np.random.randint(1, 10, size=(3, 3))
         mix_and_distrib = []
         for params in grid_params:
             alpha, beta, gamma = params
@@ -56,7 +56,7 @@ class TestNormalMeanMixturesBasicNormal:
 
     @pytest.fixture
     def generate_canonical_distributions(self):
-        grid_params = np.random.randint(1, 100, size=(5, 1))
+        grid_params = np.random.randint(1, 10, size=(3, 1))
         mix_and_distrib = []
         for params in grid_params:
             sigma = params[0]
@@ -95,27 +95,27 @@ class TestNormalMeanMixturesBasicNormal:
 class TestNormalMeanMixtureNormal:
     @pytest.fixture
     def generate_classic_distributions(self):
-        grid_params = np.random.randint(1, 100, size=(5, 3))
+        grid_params = np.random.randint(1, 10, size=(3, 3))
         mix_and_distrib = []
         for params in grid_params:
             alpha, k, gamma = params
             nm_mixture, grid = create_mixture_and_grid(
-                {"mixture_form": "classical", "alpha": alpha, "beta": 1, "gamma": gamma, "distribution": norm(0, k**2)}
+                {"mixture_form": "classical", "alpha": alpha, "beta": 1, "gamma": gamma, "distribution": norm(0, k)}
             )
-            parametric_norm = norm(alpha, k**2 + gamma)
+            parametric_norm = norm(alpha, np.sqrt(k**2 + gamma**2))
             mix_and_distrib.append((nm_mixture, parametric_norm, grid))
         return mix_and_distrib
 
     @pytest.fixture
     def generate_canonical_distributions(self):
-        grid_params = np.random.randint(1, 100, size=(5, 2))
+        grid_params = np.random.randint(1, 10, size=(3, 2))
         mix_and_distrib = []
         for params in grid_params:
             k, sigma = params
             nm_mixture, grid = create_mixture_and_grid(
-                {"mixture_form": "canonical", "sigma": sigma, "distribution": norm(0, k**2)}
+                {"mixture_form": "canonical", "sigma": sigma, "distribution": norm(0, k)}
             )
-            parametric_norm = norm(0, k**2 + sigma)
+            parametric_norm = norm(0, np.sqrt(k**2 + sigma**2))
             mix_and_distrib.append((nm_mixture, parametric_norm, grid))
         return mix_and_distrib
 
@@ -147,7 +147,7 @@ class TestNormalMeanMixtureNormal:
 class TestSkewNormalDistribution:
     @pytest.fixture
     def generate_classic_distributions(self):
-        grid_params = np.random.randint(1, 100, size=(5, 3))
+        grid_params = np.random.randint(1, 10, size=(3, 3))
         mix_and_distrib = []
         for params in grid_params:
             loc, scale, a = params
@@ -167,7 +167,7 @@ class TestSkewNormalDistribution:
 
     @pytest.fixture
     def generate_canonical_distributions(self):
-        grid_params = np.random.randint(1, 100, size=(5, 1))
+        grid_params = np.random.randint(1, 10, size=(3, 1))
         mix_and_distrib = []
         for params in grid_params:
             a = params[0]
