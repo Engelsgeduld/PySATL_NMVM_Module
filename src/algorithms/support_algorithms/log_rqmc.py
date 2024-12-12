@@ -21,6 +21,14 @@ class LogRQMC(RQMC):
 
     @staticmethod
     def lse(args: tpg.NDArray) -> float:
+        """
+        Compute LSE
+        Args:
+            args (): Values
+
+        Returns: LSE result
+
+        """
         max_value = max(args)
         return max_value + np.log(np.sum(np.exp(args - max_value)))
 
@@ -34,7 +42,7 @@ class LogRQMC(RQMC):
 
         """
         vfunc = np.vectorize(self.func)
-        return -np.log(len(values)) + self.lse(np.log(vfunc(values)))
+        return -np.log(len(values)) + self.lse(vfunc(values))
 
     def _estimator(self, random_matrix: np._typing.NDArray) -> tuple[float, np._typing.NDArray]:
         """Find mean of all rows
@@ -82,8 +90,8 @@ class LogRQMC(RQMC):
             old_value, new_values = old_values[i], random_matrix[i]
             value = self._update_independent_estimator(j, old_value, new_values)
             values.append(value)
-        values = np.array(values)
-        return -np.log(self.count) + self.lse(values), values
+        np_values = np.array(values)
+        return -np.log(self.count) + self.lse(np_values), np_values
 
     def rqmc(self) -> tuple[float, float]:
         """Main function of algorithm
@@ -109,6 +117,5 @@ class LogRQMC(RQMC):
 
 
 if __name__ == "__main__":
-    rqmc = RQMC(lambda x: np.log(x**3 - x**2 + 1))
     log_rqmc = LogRQMC(lambda x: x**3 - x**2 + 1, i_max=100)
     print(log_rqmc())
