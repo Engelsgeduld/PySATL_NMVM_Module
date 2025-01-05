@@ -49,6 +49,7 @@ class TestHardFunctions:
         )
         assert loss_func(lambda x: 0, rqmc.rqmc, 100)
 
+
 @pytest.mark.ci
 class TestArgsParse:
     @pytest.mark.parametrize(

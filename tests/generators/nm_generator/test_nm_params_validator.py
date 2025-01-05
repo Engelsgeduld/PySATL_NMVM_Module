@@ -3,6 +3,7 @@ from scipy.stats import norm
 
 from src.mixtures.nm_mixture import NormalMeanMixtures
 
+
 @pytest.mark.ci
 class TestGenerateParamsValidators:
     @pytest.mark.parametrize(

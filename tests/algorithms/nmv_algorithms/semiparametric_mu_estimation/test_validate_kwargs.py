@@ -9,6 +9,7 @@ from src.algorithms.semiparam_algorithms.nvm_semi_param_algorithms.mu_estimation
 def _test_omega(x: float) -> float:
     return (-(x**3)) * math.exp(-(1 / (1 - x**2))) if abs(x) < 1 else 0
 
+
 @pytest.mark.ci
 class TestValidateKwargs:
     @pytest.mark.parametrize(
